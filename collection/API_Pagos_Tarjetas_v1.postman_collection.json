@@ -1,0 +1,962 @@
+{
+	"info": {
+		"_postman_id": "98677c1a-c4c1-441c-8b27-d5f34a64c633",
+		"name": "API Pagos Tarjetas v1.0",
+		"description": "Colección completa para testear todos los endpoints del Sistema de Pagos con Tarjetas de Crédito.\n\n**Trabajo Final 2025 - DISEÑO DE BASES DE DATOS**\n\n**Base URL:** http://localhost:8080/dbd/v1\n\n**Orden recomendado de ejecución:**\n1. Crear entidades base (Banco, Titular, Tarjeta)\n2. Crear promociones\n3. Crear compras\n4. Generar pago mensual\n5. Ejecutar consultas de requerimientos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34269054"
+	},
+	"item": [
+		{
+			"name": "🏦 1. BANCOS",
+			"item": [
+				{
+					"name": "1.1 Crear Banco",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"bancoId\", jsonData.id);",
+									"    pm.test(\"Banco creado exitosamente\", function () {",
+									"        pm.expect(jsonData.nombre).to.eql(\"Banco Galicia\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Banco Galicia\",\n    \"cuit\": \"30-50000000-0\",\n    \"direccion\": \"Av. Corrientes 1234, CABA\",\n    \"telefono\": \"0800-444-2400\",\n    \"direccionWeb\": \"https://www.bancogalicia.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/bancos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"bancos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Obtener Todos los Bancos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/bancos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"bancos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 11: Clientes por Banco",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/bancos/clientes-por-banco",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"bancos",
+								"clientes-por-banco"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 10: Banco con Más Compras",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/bancos/mas-compras",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"bancos",
+								"mas-compras"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👤 2. TITULARES",
+			"item": [
+				{
+					"name": "2.1 Crear Titular",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"titularId\", jsonData.id);",
+									"    pm.test(\"Titular creado exitosamente\", function () {",
+									"        pm.expect(jsonData.nombreCompleto).to.eql(\"Juan Pérez\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombreCompleto\": \"Juan Pérez\",\n    \"dni\": \"12345678\",\n    \"cuit\": \"20-12345678-9\",\n    \"direccion\": \"Calle Falsa 123, CABA\",\n    \"telefono\": \"11-1234-5678\",\n    \"fechaAlta\": \"2020-01-15\",\n    \"bancoId\": {{bancoId}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/titulares",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"titulares"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Obtener Todos los Titulares",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/titulares",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"titulares"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 8: Top Compradores (parametrizable)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/titulares/top-compradores?limite=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"titulares",
+								"top-compradores"
+							],
+							"query": [
+								{
+									"key": "limite",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💳 3. TARJETAS",
+			"item": [
+				{
+					"name": "3.1 Crear Tarjeta",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"tarjetaId\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"numero\": \"4532-1234-5678-9010\",\n    \"ccv\": \"123\",\n    \"nombreTitularTarjeta\": \"JUAN PEREZ\",\n    \"desde\": \"2020-01-01\",\n    \"fechaVencimiento\": \"2025-12-31\",\n    \"titularId\": {{titularId}},\n    \"bancoId\": {{bancoId}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tarjetas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tarjetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Obtener Todas las Tarjetas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/tarjetas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tarjetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 4: Tarjetas Emitidas (parametrizable)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tarjetas/emitidas?anios=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tarjetas",
+								"emitidas"
+							],
+							"query": [
+								{
+									"key": "anios",
+									"value": "5",
+									"description": "Tarjetas emitidas hace más de N años"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🎁 4. PROMOCIONES",
+			"item": [
+				{
+					"name": "REQ 1: Agregar Descuento a Banco",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"promocionCodigo\", jsonData.codigo);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"codigo\": \"DESC2025\",\n    \"tituloPromocion\": \"Descuento Black Friday 2025\",\n    \"nombreTienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"fechaInicioValidez\": \"2025-10-01\",\n    \"fechaFinValidez\": \"2025-12-31\",\n    \"comentarios\": \"Descuento especial para Black Friday\",\n    \"bancoId\": {{bancoId}},\n    \"porcentajeDescuento\": 20.0,\n    \"tope\": 50000.0,\n    \"soloContado\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/promociones/descuento",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"promociones",
+								"descuento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Agregar Financiación 12 Cuotas",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"codigo\": \"FIN12CUOTAS\",\n    \"tituloPromocion\": \"12 Cuotas Sin Interés\",\n    \"nombreTienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"fechaInicioValidez\": \"2025-10-01\",\n    \"fechaFinValidez\": \"2025-12-31\",\n    \"comentarios\": \"Financiación especial para compras en cuotas\",\n    \"bancoId\": {{bancoId}},\n    \"numeroCuotas\": 12,\n    \"interes\": 0.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/promociones/financiacion",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"promociones",
+								"financiacion"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 7: Promociones de Local entre Fechas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/promociones/local/{{cuitTienda}}?fechaInicio=2025-10-01&fechaFin=2025-12-31",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"promociones",
+								"local",
+								"{{cuitTienda}}"
+							],
+							"query": [
+								{
+									"key": "fechaInicio",
+									"value": "2025-10-01"
+								},
+								{
+									"key": "fechaFin",
+									"value": "2025-12-31"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 6: Eliminar Promoción por Código",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/promociones/codigo/{{codigoPromo}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"promociones",
+								"codigo",
+								"{{codigoPromo}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🛒 5. COMPRAS",
+			"item": [
+				{
+					"name": "5.1 Crear Compra Pago Único",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"compraId\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-001\",\n    \"tienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"monto\": 10000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"descuentoTienda\": 10.0,\n    \"codigosPromociones\": [\n        \"DESC2025\"\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/compras/pago-unico",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"compras",
+								"pago-unico"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.2 Crear Compra en Cuotas",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-002\",\n    \"tienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"monto\": 50000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"interes\": 15.0,\n    \"numeroCuotas\": 12,\n    \"codigosPromociones\": [\n        \"FIN12CUOTAS\"\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/compras/cuotas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"compras",
+								"cuotas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 5: Obtener Compra con Cuotas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/compras/{{id}}/detalles",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"compras",
+								"{{id}}",
+								"detalles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 9: Local con Más Compras",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/compras/local-mas-compras",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"compras",
+								"local-mas-compras"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💰 6. PAGOS",
+			"item": [
+				{
+					"name": "REQ 3: Generar Pago Mensual",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"pagoId\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mes\": \"11\",\n    \"anio\": \"2025\",\n    \"primerVencimiento\": \"2025-11-10\",\n    \"segundoVencimiento\": \"2025-11-20\",\n    \"recargoPrimerVencimiento\": 0.0,\n    \"recargoSegundoVencimiento\": 5.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pagos/generar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pagos",
+								"generar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 3b: Ver Items del Pago",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/pagos/codigo/{{codigo}}/items",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pagos",
+								"codigo",
+								"{{codigo}}",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 2: Editar Fechas de Vencimiento",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"primerVencimiento\": \"2025-11-15\",\n  \"segundoVencimiento\": \"2025-11-25\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pagos/codigo/{{codigo}}/fechas-vencimiento",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pagos",
+								"codigo",
+								"{{codigo}}",
+								"fechas-vencimiento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6.4 Obtener Todos los Pagos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/pagos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pagos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📋 7. RESUMEN REQUERIMIENTOS",
+			"item": [
+				{
+					"name": "✅ REQ 1: Agregar Descuento",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"codigo\": \"TEST-DESC\",\n    \"tituloPromocion\": \"Test Descuento\",\n    \"nombreTienda\": \"Test Store\",\n    \"cuitTienda\": \"30-11111111-1\",\n    \"fechaInicioValidez\": \"2025-11-01\",\n    \"fechaFinValidez\": \"2025-11-30\",\n    \"bancoId\": {{bancoId}},\n    \"porcentajeDescuento\": 15.0,\n    \"tope\": 30000.0,\n    \"soloContado\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/promociones/descuento",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"promociones",
+								"descuento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 2: Editar Fechas Vencimiento",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"primerVencimiento\": \"2025-11-12\",\n    \"segundoVencimiento\": \"2025-11-22\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pagos/codigo/{{codigo}}/fechas-vencimiento",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pagos",
+								"codigo",
+								"{{codigo}}",
+								"fechas-vencimiento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 3: Generar Pago Mensual",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mes\": \"12\",\n    \"anio\": \"2025\",\n    \"primerVencimiento\": \"2025-12-10\",\n    \"segundoVencimiento\": \"2025-12-20\",\n    \"recargoPrimerVencimiento\": 0.0,\n    \"recargoSegundoVencimiento\": 5.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pagos/generar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pagos",
+								"generar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 4: Tarjetas > 5 años",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tarjetas/emitidas?anios=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tarjetas",
+								"emitidas"
+							],
+							"query": [
+								{
+									"key": "anios",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 5: Compra con Cuotas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/compras/{{id}}/detalles",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"compras",
+								"{{id}}",
+								"detalles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 6: Eliminar Promoción",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/promociones/codigo/{{codigoPromo}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"promociones",
+								"codigo",
+								"{{codigoPromo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 7: Promociones entre Fechas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/promociones/local/{{cuitTienda}}?fechaInicio=2025-10-01&fechaFin=2025-12-31",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"promociones",
+								"local",
+								"{{cuitTienda}}"
+							],
+							"query": [
+								{
+									"key": "fechaInicio",
+									"value": "2025-10-01"
+								},
+								{
+									"key": "fechaFin",
+									"value": "2025-12-31"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 8: Top Compradores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/titulares/top-compradores?limite=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"titulares",
+								"top-compradores"
+							],
+							"query": [
+								{
+									"key": "limite",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 9: Local Más Compras",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/compras/local-mas-compras",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"compras",
+								"local-mas-compras"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 10: Banco Más Compras",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/bancos/mas-compras",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"bancos",
+								"mas-compras"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ REQ 11: Clientes por Banco",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/bancos/clientes-por-banco",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"bancos",
+								"clientes-por-banco"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080/dbd/v1",
+			"type": "string"
+		},
+		{
+			"key": "bancoId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "titularId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "tarjetaId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "compraId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "promocionCodigo",
+			"value": "DESC2025",
+			"type": "string"
+		},
+		{
+			"key": "pagoId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "cuitTienda",
+			"value": "30-12345678-9",
+			"type": "string"
+		},
+		{
+			"key": "codigo",
+			"value": "PAG-202511",
+			"type": "string"
+		},
+		{
+			"key": "id",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}

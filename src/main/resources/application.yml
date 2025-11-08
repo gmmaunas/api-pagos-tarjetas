@@ -1,0 +1,121 @@
+spring:
+  application:
+    name: api-pagos-tarjetas
+
+  # ===============================
+  # CONFIGURACIÓN DE BASE DE DATOS MYSQL
+  # ===============================
+  datasource:
+    url: jdbc:mysql://localhost:3306/api_pagos_tarjetas?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # ===============================
+  # CONFIGURACIÓN DE JPA/HIBERNATE
+  # ===============================
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 20
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        enable_lazy_load_no_trans: false
+    open-in-view: false
+
+  # ===============================
+  # CONFIGURACIÓN DE JACKSON (JSON)
+  # ===============================
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+      write-dates-as-timestamps: false
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: America/Argentina/Buenos_Aires
+    default-property-inclusion: non_null
+
+  # ===============================
+  # VIRTUAL THREADS (Java 21)
+  # ===============================
+  threads:
+    virtual:
+      enabled: true
+
+# ===============================
+# CONFIGURACIÓN DEL SERVIDOR
+# ===============================
+server:
+  port: 8080
+  servlet:
+    context-path: /dbd/v1
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+
+# ===============================
+# CONFIGURACIÓN DE LOGGING
+# ===============================
+logging:
+  level:
+    root: INFO
+    com.dbd.service.pagos_tarjetas: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/api-pagos-tarjetas.log
+    max-size: 10MB
+    max-history: 30
+    total-size-cap: 1GB
+
+# ===============================
+# CONFIGURACIÓN DE SPRINGDOC OPENAPI (SWAGGER)
+# ===============================
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: alpha
+    tagsSorter: alpha
+    doc-expansion: none
+    display-request-duration: true
+    filter: true
+  packages-to-scan: com.dbd.service.pagos_tarjetas.rest.controller
+  show-actuator: false
+
+# ===============================
+# CONFIGURACIÓN DE ACTUATOR
+# ===============================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
