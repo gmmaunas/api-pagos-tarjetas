@@ -24,5 +24,5 @@ public record TitularTarjetaRequest(
         LocalDate fechaAlta,
 
         @NotNull(message = "El ID del banco es obligatorio")
-        Long bancoId
+        String bancoId
 ) {}

@@ -24,7 +24,7 @@ public record CompraPagoUnicoRequest(
         LocalDateTime fechaHora,
 
         @NotNull(message = "El ID de la tarjeta es obligatorio")
-        Long tarjetaId,
+        String tarjetaId,
 
         @PositiveOrZero(message = "El descuento de tienda debe ser positivo o cero")
         Double descuentoTienda,

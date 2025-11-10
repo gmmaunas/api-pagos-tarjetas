@@ -1,67 +1,64 @@
 package com.dbd.service.pagos_tarjetas.model;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "pagos")
+@Document(collection = "pagos")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Pago {
-    
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, unique = true)
+    private String id;
+
+    @Indexed(unique = true)
     private String codigo;
-    
-    @Column(nullable = false)
+
     private String mes;
-    
-    @Column(nullable = false)
+
     private String anio;
-    
-    @Column(nullable = false)
+
     private LocalDate primerVencimiento;
-    
-    @Column(nullable = false)
+
     private LocalDate segundoVencimiento;
-    
-    @Column(nullable = false)
+
     private Double recargoPrimerVencimiento;
-    
-    @Column(nullable = false)
+
     private Double recargoSegundoVencimiento;
-    
-    @Column(nullable = false)
+
     private Double precioTotal;
-    
-    @OneToMany(mappedBy = "pago", cascade = CascadeType.ALL)
+
+    // Cuotas embebidas (copiadas desde las compras)
     @Builder.Default
     private List<Cuota> cuotas = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "pago", cascade = CascadeType.ALL)
+
+    // IDs de compras en pago único (referencias)
     @Builder.Default
-    private List<CompraPagoUnico> comprasPagoUnico = new ArrayList<>();
-    
+    private List<String> comprasPagoUnicoIds = new ArrayList<>();
+
+    // Campo transient para cargar las compras cuando sea necesario
+    @Transient
+    private List<CompraPagoUnico> comprasPagoUnico;
+
     public void calcularPrecioTotal() {
         Double total = 0.0;
-        
+
         for (Cuota cuota : cuotas) {
             total += cuota.getPrecio();
         }
-        
-        for (CompraPagoUnico compra : comprasPagoUnico) {
-            total += compra.getMontoFinal();
-        }
-        
+
+        // Las compras de pago único se deben buscar por sus IDs y sumar sus montos
+        // Esto se hace en el servicio
+
         this.precioTotal = total;
     }
 }

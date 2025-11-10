@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record CompraResponse(
-        Long id,
+        String id,
         String tipo,
         String comprobanteVoucher,
         String tienda,
@@ -12,7 +12,7 @@ public record CompraResponse(
         Double monto,
         Double montoFinal,
         LocalDateTime fechaHora,
-        Long tarjetaId,
+        String tarjetaId,
         String tarjetaNumero,
         List<PromocionResponse> promocionesAplicadas
 ) {}

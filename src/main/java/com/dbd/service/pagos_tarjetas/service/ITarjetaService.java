@@ -20,7 +20,7 @@ public interface ITarjetaService {
      * @param id ID de la tarjeta
      * @return Tarjeta encontrada
      */
-    Tarjeta obtenerTarjetaPorId(Long id);
+    Tarjeta obtenerTarjetaPorId(String id);
 
     /**
      * Obtiene una tarjeta por su número
@@ -40,14 +40,14 @@ public interface ITarjetaService {
      * @param titularId ID del titular
      * @return Lista de tarjetas del titular
      */
-    List<Tarjeta> obtenerTarjetasPorTitular(Long titularId);
+    List<Tarjeta> obtenerTarjetasPorTitular(String titularId);
 
     /**
      * Obtiene las tarjetas de un banco específico
      * @param bancoId ID del banco
      * @return Lista de tarjetas del banco
      */
-    List<Tarjeta> obtenerTarjetasPorBanco(Long bancoId);
+    List<Tarjeta> obtenerTarjetasPorBanco(String bancoId);
 
     /**
      * Actualiza una tarjeta existente
@@ -55,13 +55,13 @@ public interface ITarjetaService {
      * @param tarjetaActualizada Datos actualizados de la tarjeta
      * @return Tarjeta actualizada
      */
-    Tarjeta actualizarTarjeta(Long id, Tarjeta tarjetaActualizada);
+    Tarjeta actualizarTarjeta(String id, Tarjeta tarjetaActualizada);
 
     /**
      * Elimina una tarjeta por su ID
      * @param id ID de la tarjeta a eliminar
      */
-    void eliminarTarjeta(Long id);
+    void eliminarTarjeta(String id);
 
     /**
      * Obtiene el listado de tarjetas emitidas hace más de N años

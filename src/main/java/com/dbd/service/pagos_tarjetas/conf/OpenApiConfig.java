@@ -31,7 +31,7 @@ public class OpenApiConfig {
                                 .url("https://github.com/gmmaunas/api-pagos-tarjetas")))
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8080")
+                                .url("http://localhost:8081")
                                 .description("Servidor de Desarrollo")
                 ));
     }

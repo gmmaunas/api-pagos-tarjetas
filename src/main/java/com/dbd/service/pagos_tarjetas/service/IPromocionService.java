@@ -30,7 +30,7 @@ public interface IPromocionService {
      * @param id ID de la promoción
      * @return Promoción encontrada
      */
-    Promocion obtenerPromocionPorId(Long id);
+    Promocion obtenerPromocionPorId(String id);
 
     /**
      * Obtiene una promoción por su código
@@ -50,7 +50,7 @@ public interface IPromocionService {
      * @param bancoId ID del banco
      * @return Lista de promociones del banco
      */
-    List<Promocion> obtenerPromocionesPorBanco(Long bancoId);
+    List<Promocion> obtenerPromocionesPorBanco(String bancoId);
 
     /**
      * Obtiene el listado de las promociones disponibles de un local entre dos fechas
@@ -74,7 +74,7 @@ public interface IPromocionService {
      * Elimina una promoción por su ID
      * @param id ID de la promoción a eliminar
      */
-    void eliminarPromocion(Long id);
+    void eliminarPromocion(String id);
 
     /**
      * Actualiza una promoción existente
@@ -82,5 +82,5 @@ public interface IPromocionService {
      * @param promocionActualizada Datos actualizados de la promoción
      * @return Promoción actualizada
      */
-    Promocion actualizarPromocion(Long id, Promocion promocionActualizada);
+    Promocion actualizarPromocion(String id, Promocion promocionActualizada);
 }

@@ -139,19 +139,18 @@ public class CompraMapper {
         );
     }
 
-    // Cuota
+    // Cuota (documento embebido, sin ID)
     public static CuotaResponse toCuotaResponse(Cuota cuota) {
         if (cuota == null) {
             return null;
         }
 
         return new CuotaResponse(
-                cuota.getId(),
                 cuota.getNumero(),
                 cuota.getPrecio(),
                 cuota.getMes(),
                 cuota.getAnio(),
-                cuota.getPago() != null ? cuota.getPago().getId() : null
+                cuota.getPagoId()
         );
     }
 }

@@ -42,7 +42,7 @@ public class PagoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PagoResponse> obtenerPagoPorId(@PathVariable Long id) {
+    public ResponseEntity<PagoResponse> obtenerPagoPorId(@PathVariable String id) {
         return ResponseEntity.ok(PagoMapper.toResponse(pagoService.obtenerPagoPorId(id)));
     }
 
@@ -71,7 +71,7 @@ public class PagoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarPago(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarPago(@PathVariable String id) {
         pagoService.eliminarPago(id);
         return ResponseEntity.noContent().build();
     }

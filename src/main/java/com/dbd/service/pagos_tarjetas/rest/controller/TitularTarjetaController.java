@@ -35,7 +35,7 @@ public class TitularTarjetaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TitularTarjetaResponse> obtenerTitularPorId(@PathVariable Long id) {
+    public ResponseEntity<TitularTarjetaResponse> obtenerTitularPorId(@PathVariable String id) {
         TitularTarjeta titular = titularTarjetaService.obtenerTitularPorId(id);
         return ResponseEntity.ok(TitularTarjetaMapper.toResponse(titular));
     }
@@ -62,7 +62,7 @@ public class TitularTarjetaController {
     }
 
     @GetMapping("/banco/{bancoId}")
-    public ResponseEntity<List<TitularTarjetaResponse>> obtenerTitularesPorBanco(@PathVariable Long bancoId) {
+    public ResponseEntity<List<TitularTarjetaResponse>> obtenerTitularesPorBanco(@PathVariable String bancoId) {
         List<TitularTarjeta> titulares = titularTarjetaService.obtenerTitularesPorBanco(bancoId);
         List<TitularTarjetaResponse> response = titulares.stream()
                 .map(TitularTarjetaMapper::toResponse)
@@ -72,7 +72,7 @@ public class TitularTarjetaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<TitularTarjetaResponse> actualizarTitular(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody TitularTarjetaRequest request) {
         TitularTarjeta titular = titularTarjetaService.obtenerTitularPorId(id);
         Banco banco = bancoService.obtenerBancoPorId(request.bancoId());
@@ -82,7 +82,7 @@ public class TitularTarjetaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarTitular(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarTitular(@PathVariable String id) {
         titularTarjetaService.eliminarTitular(id);
         return ResponseEntity.noContent().build();
     }

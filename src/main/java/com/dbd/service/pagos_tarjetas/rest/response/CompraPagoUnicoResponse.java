@@ -4,16 +4,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record CompraPagoUnicoResponse(
-        Long id,
+        String id,
         String comprobanteVoucher,
         String tienda,
         String cuitTienda,
         Double monto,
         Double montoFinal,
         LocalDateTime fechaHora,
-        Long tarjetaId,
+        String tarjetaId,
         String tarjetaNumero,
         Double descuentoTienda,
-        Long pagoId,
+        String pagoId,
         List<PromocionResponse> promocionesAplicadas
 ) {}

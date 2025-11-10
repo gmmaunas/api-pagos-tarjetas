@@ -25,7 +25,7 @@ public record CompraCuotasRequest(
         LocalDateTime fechaHora,
 
         @NotNull(message = "El ID de la tarjeta es obligatorio")
-        Long tarjetaId,
+        String tarjetaId,
 
         @PositiveOrZero(message = "El interés debe ser positivo o cero")
         Double interes,

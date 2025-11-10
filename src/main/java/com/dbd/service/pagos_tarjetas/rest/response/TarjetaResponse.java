@@ -3,14 +3,14 @@ package com.dbd.service.pagos_tarjetas.rest.response;
 import java.time.LocalDate;
 
 public record TarjetaResponse(
-        Long id,
+        String id,
         String numero,
         String ccv,
         String nombreTitularTarjeta,
         LocalDate desde,
         LocalDate fechaVencimiento,
-        Long titularId,
+        String titularId,
         String titularNombre,
-        Long bancoId,
+        String bancoId,
         String bancoNombre
 ) {}

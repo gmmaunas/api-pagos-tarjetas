@@ -3,38 +3,14 @@ spring:
     name: api-pagos-tarjetas
 
   # ===============================
-  # CONFIGURACIÓN DE BASE DE DATOS MYSQL
+  # CONFIGURACIÓN DE MONGODB
   # ===============================
-  datasource:
-    url: jdbc:mysql://localhost:3306/api_pagos_tarjetas?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: ""
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-
-  # ===============================
-  # CONFIGURACIÓN DE JPA/HIBERNATE
-  # ===============================
-  jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc:
-          batch_size: 20
-          batch_versioned_data: true
-        order_inserts: true
-        order_updates: true
-        enable_lazy_load_no_trans: false
-    open-in-view: false
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/api_pagos_tarjetas
+      # Alternativa con autenticación:
+      # uri: mongodb://username:password@localhost:27017/api_pagos_tarjetas
+      auto-index-creation: true
 
   # ===============================
   # CONFIGURACIÓN DE JACKSON (JSON)
@@ -60,9 +36,9 @@ spring:
 # CONFIGURACIÓN DEL SERVIDOR
 # ===============================
 server:
-  port: 8080
+  port: 8081
   servlet:
-    context-path: /dbd/v1
+    context-path: /dbd/v2
   error:
     include-message: always
     include-binding-errors: always
@@ -78,8 +54,7 @@ logging:
   level:
     root: INFO
     com.dbd.service.pagos_tarjetas: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.data.mongodb.core: DEBUG
     org.springframework.web: DEBUG
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

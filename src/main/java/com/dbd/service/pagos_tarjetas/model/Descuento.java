@@ -1,26 +1,20 @@
 package com.dbd.service.pagos_tarjetas.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-@Entity
-@Table(name = "descuentos")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class Descuento extends Promocion {
-    
-    @Column(nullable = false)
+
     private Double porcentajeDescuento;
-    
+
     private Double tope;
-    
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean soloContado = false;
+
+    private Boolean soloContado;
 
     @Override
     public String getTipo() {

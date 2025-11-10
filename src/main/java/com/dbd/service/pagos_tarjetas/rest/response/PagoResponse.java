@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record PagoResponse(
-        Long id,
+        String id,
         String codigo,
         String mes,
         String anio,

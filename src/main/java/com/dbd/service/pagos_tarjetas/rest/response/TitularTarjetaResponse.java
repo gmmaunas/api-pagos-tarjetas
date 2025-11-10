@@ -3,7 +3,7 @@ package com.dbd.service.pagos_tarjetas.rest.response;
 import java.time.LocalDate;
 
 public record TitularTarjetaResponse(
-        Long id,
+        String id,
         String nombreCompleto,
         String dni,
         String cuit,

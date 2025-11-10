@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,15 +35,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
 class ApiPagosTarjetasIntegrationTests {
 
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private Long bancoId;
-    private Long titularId;
-    private Long tarjetaId;
-    private Long compraId;
+    private String bancoId;
+    private String titularId;
+    private String tarjetaId;
+    private String compraId;
     private String codigoPromocion;
     private String codigoPago;
 
@@ -260,8 +262,8 @@ class ApiPagosTarjetasIntegrationTests {
         // Puede fallar si ya existe el pago
         if (response.getStatusCode() == HttpStatus.CREATED) {
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().mes()).isEqualTo(Integer.parseInt(mes));
-            assertThat(response.getBody().anio()).isEqualTo(Integer.parseInt(anio));
+            assertThat(response.getBody().mes()).isEqualTo(mes);
+            assertThat(response.getBody().anio()).isEqualTo(anio);
             assertThat(response.getBody().precioTotal()).isGreaterThan(0);
         }
     }

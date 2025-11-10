@@ -1,24 +1,19 @@
 package com.dbd.service.pagos_tarjetas.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 
-@Entity
-@Table(name = "compras_pago_unico")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class CompraPagoUnico extends Compra {
-    
-    @Column(nullable = false)
-    @Builder.Default
-    private Double descuentoTienda = 0.0;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pago_id")
+
+    private Double descuentoTienda;
+
+    @DBRef
     private Pago pago;
 
     @Override
@@ -28,13 +23,15 @@ public class CompraPagoUnico extends Compra {
 
     @Override
     public void calcularMontoFinal() {
-        // Aplicar descuento de la tienda
-        Double montoConDescuentoTienda = getMonto() * (1 - descuentoTienda / 100);
+        // Aplicar descuento de la tienda primero
+        Double montoConDescuentoTienda = getMonto();
+        if (descuentoTienda != null && descuentoTienda > 0) {
+            montoConDescuentoTienda = getMonto() * (1 - descuentoTienda / 100);
+        }
 
-        // Aplicar promociones usando Double Dispatch
+        // Aplicar promociones del banco
         Double descuentoTotal = 0.0;
         for (Promocion promo : getPromocionesAplicadas()) {
-            // Cada promoción sabe cómo aplicarse a un pago único
             descuentoTotal += promo.aplicarAPagoUnico(this, montoConDescuentoTienda);
         }
 

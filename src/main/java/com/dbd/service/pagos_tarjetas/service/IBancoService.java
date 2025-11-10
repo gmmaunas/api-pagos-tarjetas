@@ -21,7 +21,7 @@ public interface IBancoService {
      * @param id ID del banco
      * @return Banco encontrado
      */
-    Banco obtenerBancoPorId(Long id);
+    Banco obtenerBancoPorId(String id);
 
     /**
      * Obtiene un banco por su CUIT
@@ -42,13 +42,13 @@ public interface IBancoService {
      * @param bancoActualizado Datos actualizados del banco
      * @return Banco actualizado
      */
-    Banco actualizarBanco(Long id, Banco bancoActualizado);
+    Banco actualizarBanco(String id, Banco bancoActualizado);
 
     /**
      * Elimina un banco por su ID
      * @param id ID del banco a eliminar
      */
-    void eliminarBanco(Long id);
+    void eliminarBanco(String id);
 
     /**
      * Obtiene el banco con mayor cantidad de compras realizadas con sus tarjetas

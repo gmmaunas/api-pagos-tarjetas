@@ -1,47 +1,29 @@
 package com.dbd.service.pagos_tarjetas.model;
 
-import jakarta.persistence.*;
 import lombok.*;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "bancos")
+@Document(collection = "bancos")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Banco {
-    
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false)
+    private String id;
+
     private String nombre;
-    
-    @Column(nullable = false, unique = true)
+
+    @Indexed(unique = true)
     private String cuit;
-    
-    @Column(nullable = false)
+
     private String direccion;
-    
-    @Column(nullable = false)
+
     private String telefono;
-    
-    @Column(nullable = false)
+
     private String direccionWeb;
-    
-    @OneToMany(mappedBy = "banco", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<TitularTarjeta> miembros = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "banco", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Promocion> promociones = new ArrayList<>();
-    
-    @OneToMany(mappedBy = "banco", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Tarjeta> tarjetas = new ArrayList<>();
 }

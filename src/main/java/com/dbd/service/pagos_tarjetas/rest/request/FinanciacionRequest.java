@@ -28,7 +28,7 @@ public record FinanciacionRequest(
         String comentarios,
 
         @NotNull(message = "El ID del banco es obligatorio")
-        Long bancoId,
+        String bancoId,
 
         @NotNull(message = "El número de cuotas es obligatorio")
         @Positive(message = "El número de cuotas debe ser mayor a cero")

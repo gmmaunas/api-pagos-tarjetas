@@ -45,7 +45,7 @@ public interface IPagoService {
      * @param id ID del pago
      * @return Pago encontrado
      */
-    Pago obtenerPagoPorId(Long id);
+    Pago obtenerPagoPorId(String id);
 
     /**
      * Obtiene un pago por su código
@@ -71,5 +71,5 @@ public interface IPagoService {
      * Elimina un pago por su ID
      * @param id ID del pago a eliminar
      */
-    void eliminarPago(Long id);
+    void eliminarPago(String id);
 }

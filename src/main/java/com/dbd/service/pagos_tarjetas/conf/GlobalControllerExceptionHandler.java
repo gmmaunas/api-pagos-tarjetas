@@ -1,7 +1,6 @@
 package com.dbd.service.pagos_tarjetas.conf;
 
 import com.dbd.service.pagos_tarjetas.rest.response.ApiErrorResponse;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,7 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalControllerExceptionHandler {
 
-    @ExceptionHandler({NoSuchElementException.class, EntityNotFoundException.class})
+    @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFoundException(Exception ex) {
         log.error("Error 404: {}", ex.getMessage());
         return ResponseEntity

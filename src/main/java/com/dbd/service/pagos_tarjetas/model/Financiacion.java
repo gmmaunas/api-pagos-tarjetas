@@ -1,22 +1,17 @@
 package com.dbd.service.pagos_tarjetas.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-@Entity
-@Table(name = "financiaciones")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class Financiacion extends Promocion {
-    
-    @Column(nullable = false)
+
     private Integer numeroCuotas;
-    
-    @Column(nullable = false)
+
     private Double interes;
 
     @Override

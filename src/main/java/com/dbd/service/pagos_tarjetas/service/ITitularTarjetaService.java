@@ -21,7 +21,7 @@ public interface ITitularTarjetaService {
      * @param id ID del titular
      * @return Titular encontrado
      */
-    TitularTarjeta obtenerTitularPorId(Long id);
+    TitularTarjeta obtenerTitularPorId(String id);
 
     /**
      * Obtiene un titular por su CUIT
@@ -48,7 +48,7 @@ public interface ITitularTarjetaService {
      * @param bancoId ID del banco
      * @return Lista de titulares del banco
      */
-    List<TitularTarjeta> obtenerTitularesPorBanco(Long bancoId);
+    List<TitularTarjeta> obtenerTitularesPorBanco(String bancoId);
 
     /**
      * Actualiza un titular existente
@@ -56,13 +56,13 @@ public interface ITitularTarjetaService {
      * @param titularActualizado Datos actualizados del titular
      * @return Titular actualizado
      */
-    TitularTarjeta actualizarTitular(Long id, TitularTarjeta titularActualizado);
+    TitularTarjeta actualizarTitular(String id, TitularTarjeta titularActualizado);
 
     /**
      * Elimina un titular por su ID
      * @param id ID del titular a eliminar
      */
-    void eliminarTitular(Long id);
+    void eliminarTitular(String id);
 
     /**
      * Obtiene los nombres de los N titulares con mayor monto total en compras

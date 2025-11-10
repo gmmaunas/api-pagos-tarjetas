@@ -31,7 +31,7 @@ public class BancoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BancoResponse> obtenerBancoPorId(@PathVariable Long id) {
+    public ResponseEntity<BancoResponse> obtenerBancoPorId(@PathVariable String id) {
         Banco banco = bancoService.obtenerBancoPorId(id);
         return ResponseEntity.ok(BancoMapper.toResponse(banco));
     }
@@ -53,7 +53,7 @@ public class BancoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<BancoResponse> actualizarBanco(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody BancoRequest request) {
         Banco banco = bancoService.obtenerBancoPorId(id);
         BancoMapper.updateEntityFromRequest(banco, request);
@@ -62,7 +62,7 @@ public class BancoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarBanco(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarBanco(@PathVariable String id) {
         bancoService.eliminarBanco(id);
         return ResponseEntity.noContent().build();
     }

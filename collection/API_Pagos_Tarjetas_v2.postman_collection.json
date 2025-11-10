@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "98677c1a-c4c1-441c-8b27-d5f34a64c633",
-		"name": "API Pagos Tarjetas v1.0",
-		"description": "Colección completa para testear todos los endpoints del Sistema de Pagos con Tarjetas de Crédito.\n\n**Trabajo Final 2025 - DISEÑO DE BASES DE DATOS**\n\n**Base URL:** http://localhost:8080/dbd/v1\n\n**Orden recomendado de ejecución:**\n1. Crear entidades base (Banco, Titular, Tarjeta)\n2. Crear promociones\n3. Crear compras\n4. Generar pago mensual\n5. Ejecutar consultas de requerimientos",
+		"_postman_id": "c8828fe7-35fb-476f-9912-62f942a43ce7",
+		"name": "API Pagos Tarjetas v2.0",
+		"description": "Colección completa para testear todos los endpoints del Sistema de Pagos con Tarjetas de Crédito.\n\n**Trabajo Final 2025 - DISEÑO DE BASES DE DATOS**\n\n**Base URL:** [http://localhost:8081/dbd/v2](http://localhost:8081/dbd/v2)\n\n**Orden recomendado de ejecución:**\n\n1. Crear entidades base (Banco, Titular, Tarjeta)\n    \n2. Crear promociones\n    \n3. Crear compras\n    \n4. Generar pago mensual\n    \n5. Ejecutar consultas de requerimientos",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "34269054"
 	},
@@ -149,7 +149,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"nombreCompleto\": \"Juan Pérez\",\n    \"dni\": \"12345678\",\n    \"cuit\": \"20-12345678-9\",\n    \"direccion\": \"Calle Falsa 123, CABA\",\n    \"telefono\": \"11-1234-5678\",\n    \"fechaAlta\": \"2020-01-15\",\n    \"bancoId\": {{bancoId}}\n}"
+							"raw": "{\n    \"nombreCompleto\": \"Juan Pérez\",\n    \"dni\": \"12345678\",\n    \"cuit\": \"20-12345678-9\",\n    \"direccion\": \"Calle Falsa 123, CABA\",\n    \"telefono\": \"11-1234-5678\",\n    \"fechaAlta\": \"2020-01-15\",\n    \"bancoId\": \"{{bancoId}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/titulares",
@@ -237,7 +237,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"numero\": \"4532-1234-5678-9010\",\n    \"ccv\": \"123\",\n    \"nombreTitularTarjeta\": \"JUAN PEREZ\",\n    \"desde\": \"2020-01-01\",\n    \"fechaVencimiento\": \"2025-12-31\",\n    \"titularId\": {{titularId}},\n    \"bancoId\": {{bancoId}}\n}"
+							"raw": "{\n    \"numero\": \"4532-1234-5678-9010\",\n    \"ccv\": \"123\",\n    \"nombreTitularTarjeta\": \"JUAN PEREZ\",\n    \"desde\": \"2020-01-01\",\n    \"fechaVencimiento\": \"2025-12-31\",\n    \"titularId\": \"{{titularId}}\",\n    \"bancoId\": \"{{bancoId}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/tarjetas",
@@ -331,7 +331,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"codigo\": \"DESC2025\",\n    \"tituloPromocion\": \"Descuento Black Friday 2025\",\n    \"nombreTienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"fechaInicioValidez\": \"2025-10-01\",\n    \"fechaFinValidez\": \"2025-12-31\",\n    \"comentarios\": \"Descuento especial para Black Friday\",\n    \"bancoId\": {{bancoId}},\n    \"porcentajeDescuento\": 20.0,\n    \"tope\": 50000.0,\n    \"soloContado\": true\n}"
+							"raw": "{\n    \"codigo\": \"DESC2025\",\n    \"tituloPromocion\": \"Descuento Black Friday 2025\",\n    \"nombreTienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"fechaInicioValidez\": \"2025-10-01\",\n    \"fechaFinValidez\": \"2025-12-31\",\n    \"comentarios\": \"Descuento especial para Black Friday\",\n    \"bancoId\": \"{{bancoId}}\",\n    \"porcentajeDescuento\": 20.0,\n    \"tope\": 50000.0,\n    \"soloContado\": true\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/promociones/descuento",
@@ -358,7 +358,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"codigo\": \"FIN12CUOTAS\",\n    \"tituloPromocion\": \"12 Cuotas Sin Interés\",\n    \"nombreTienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"fechaInicioValidez\": \"2025-10-01\",\n    \"fechaFinValidez\": \"2025-12-31\",\n    \"comentarios\": \"Financiación especial para compras en cuotas\",\n    \"bancoId\": {{bancoId}},\n    \"numeroCuotas\": 12,\n    \"interes\": 0.0\n}"
+							"raw": "{\n    \"codigo\": \"FIN12CUOTAS\",\n    \"tituloPromocion\": \"12 Cuotas Sin Interés\",\n    \"nombreTienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"fechaInicioValidez\": \"2025-10-01\",\n    \"fechaFinValidez\": \"2025-12-31\",\n    \"comentarios\": \"Financiación especial para compras en cuotas\",\n    \"bancoId\": \"{{bancoId}}\",\n    \"numeroCuotas\": 12,\n    \"interes\": 0.0\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/promociones/financiacion",
@@ -454,7 +454,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-001\",\n    \"tienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"monto\": 10000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"descuentoTienda\": 10.0,\n    \"codigosPromociones\": [\n        \"DESC2025\"\n    ]\n}"
+							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-001\",\n    \"tienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"monto\": 10000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": \"{{tarjetaId}}\",\n    \"descuentoTienda\": 10.0,\n    \"codigosPromociones\": [\n        \"DESC2025\"\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/compras/pago-unico",
@@ -481,7 +481,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-002\",\n    \"tienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"monto\": 50000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"interes\": 15.0,\n    \"numeroCuotas\": 12,\n    \"codigosPromociones\": [\n        \"FIN12CUOTAS\"\n    ]\n}"
+							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-002\",\n    \"tienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"monto\": 50000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": \"{{tarjetaId}}\",\n    \"interes\": 15.0,\n    \"numeroCuotas\": 12,\n    \"codigosPromociones\": [\n        \"FIN12CUOTAS\"\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/compras/cuotas",
@@ -664,7 +664,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"codigo\": \"TEST-DESC\",\n    \"tituloPromocion\": \"Test Descuento\",\n    \"nombreTienda\": \"Test Store\",\n    \"cuitTienda\": \"30-11111111-1\",\n    \"fechaInicioValidez\": \"2025-11-01\",\n    \"fechaFinValidez\": \"2025-11-30\",\n    \"bancoId\": {{bancoId}},\n    \"porcentajeDescuento\": 15.0,\n    \"tope\": 30000.0,\n    \"soloContado\": false\n}"
+							"raw": "{\n    \"codigo\": \"TEST-DESC\",\n    \"tituloPromocion\": \"Test Descuento\",\n    \"nombreTienda\": \"Test Store\",\n    \"cuitTienda\": \"30-11111111-1\",\n    \"fechaInicioValidez\": \"2025-11-01\",\n    \"fechaFinValidez\": \"2025-11-30\",\n    \"bancoId\": \"{{bancoId}}\",\n    \"porcentajeDescuento\": 15.0,\n    \"tope\": 30000.0,\n    \"soloContado\": false\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/promociones/descuento",
@@ -910,27 +910,27 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:8080/dbd/v1",
+			"value": "http://localhost:8081/dbd/v2",
 			"type": "string"
 		},
 		{
 			"key": "bancoId",
-			"value": "1",
+			"value": "691158825b226729a966cc65",
 			"type": "string"
 		},
 		{
 			"key": "titularId",
-			"value": "1",
+			"value": "69115d90ecbf570eb19b61fc",
 			"type": "string"
 		},
 		{
 			"key": "tarjetaId",
-			"value": "1",
+			"value": "69115da5ecbf570eb19b61fd",
 			"type": "string"
 		},
 		{
 			"key": "compraId",
-			"value": "1",
+			"value": "69115dd5ecbf570eb19b6202",
 			"type": "string"
 		},
 		{
@@ -940,7 +940,7 @@
 		},
 		{
 			"key": "pagoId",
-			"value": "1",
+			"value": "PAG-202511",
 			"type": "string"
 		},
 		{

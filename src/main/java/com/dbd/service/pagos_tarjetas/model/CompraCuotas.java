@@ -1,28 +1,22 @@
 package com.dbd.service.pagos_tarjetas.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "compras_cuotas")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public class CompraCuotas extends Compra {
-    
-    @Column(nullable = false)
-    @Builder.Default
-    private Double interes = 0.0;
-    
-    @Column(nullable = false)
+
     private Integer numeroCuotas;
-    
-    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true)
+
+    private Double interes;
+
+    // Cuotas embebidas
     @Builder.Default
     private List<Cuota> cuotas = new ArrayList<>();
 
@@ -68,7 +62,6 @@ public class CompraCuotas extends Compra {
                     .precio(montoCuota)
                     .mes(String.format("%02d", (getFechaHora().getMonthValue() + i - 1) % 12 + 1))
                     .anio(String.valueOf(getFechaHora().getYear() + (getFechaHora().getMonthValue() + i - 1) / 12))
-                    .compra(this)
                     .build();
             cuotas.add(cuota);
         }

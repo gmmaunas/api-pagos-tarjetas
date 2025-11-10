@@ -27,7 +27,7 @@ public record DescuentoRequest(
         String comentarios,
 
         @NotNull(message = "El ID del banco es obligatorio")
-        Long bancoId,
+        String bancoId,
 
         @NotNull(message = "El porcentaje de descuento es obligatorio")
         @PositiveOrZero(message = "El porcentaje debe ser positivo o cero")

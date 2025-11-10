@@ -65,13 +65,13 @@ public class CompraController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CompraResponse> obtenerCompraPorId(@PathVariable Long id) {
+    public ResponseEntity<CompraResponse> obtenerCompraPorId(@PathVariable String id) {
         Compra compra = compraService.obtenerCompraPorId(id);
         return ResponseEntity.ok(CompraMapper.toResponse(compra));
     }
 
     @GetMapping("/{id}/detalles")
-    public ResponseEntity<?> obtenerCompraConDetalles(@PathVariable Long id) {
+    public ResponseEntity<?> obtenerCompraConDetalles(@PathVariable String id) {
         Compra compra = compraService.obtenerCompraConDetalles(id);
 
         return ResponseEntity.ok(switch (compra) {
@@ -91,7 +91,7 @@ public class CompraController {
     }
 
     @GetMapping("/tarjeta/{tarjetaId}")
-    public ResponseEntity<List<CompraResponse>> obtenerComprasPorTarjeta(@PathVariable Long tarjetaId) {
+    public ResponseEntity<List<CompraResponse>> obtenerComprasPorTarjeta(@PathVariable String tarjetaId) {
         List<Compra> compras = compraService.obtenerComprasPorTarjeta(tarjetaId);
         List<CompraResponse> response = compras.stream()
                 .map(CompraMapper::toResponse)
@@ -106,7 +106,7 @@ public class CompraController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarCompra(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarCompra(@PathVariable String id) {
         compraService.eliminarCompra(id);
         return ResponseEntity.noContent().build();
     }

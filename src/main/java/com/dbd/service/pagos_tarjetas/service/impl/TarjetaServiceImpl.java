@@ -5,23 +5,21 @@ import com.dbd.service.pagos_tarjetas.repository.TarjetaRepository;
 import com.dbd.service.pagos_tarjetas.service.ITarjetaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class TarjetaServiceImpl implements ITarjetaService {
-    
+
     private final TarjetaRepository tarjetaRepository;
-    
+
     public Tarjeta crearTarjeta(Tarjeta tarjeta) {
         return tarjetaRepository.save(tarjeta);
     }
 
     @Override
-    public Tarjeta obtenerTarjetaPorId(Long id) {
+    public Tarjeta obtenerTarjetaPorId(String id) {
         return tarjetaRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada con id: " + id));
     }
@@ -34,21 +32,21 @@ public class TarjetaServiceImpl implements ITarjetaService {
 
     @Override
     public List<Tarjeta> obtenerTodasLasTarjetas() {
-        return tarjetaRepository.findAllWithTitularAndBanco();
+        return tarjetaRepository.findAll();
     }
 
     @Override
-    public List<Tarjeta> obtenerTarjetasPorTitular(Long titularId) {
+    public List<Tarjeta> obtenerTarjetasPorTitular(String titularId) {
         return tarjetaRepository.findByTitularTarjetaId(titularId);
     }
 
     @Override
-    public List<Tarjeta> obtenerTarjetasPorBanco(Long bancoId) {
+    public List<Tarjeta> obtenerTarjetasPorBanco(String bancoId) {
         return tarjetaRepository.findByBancoId(bancoId);
     }
 
     @Override
-    public Tarjeta actualizarTarjeta(Long id, Tarjeta tarjetaActualizada) {
+    public Tarjeta actualizarTarjeta(String id, Tarjeta tarjetaActualizada) {
         Tarjeta tarjeta = obtenerTarjetaPorId(id);
         tarjeta.setCcv(tarjetaActualizada.getCcv());
         tarjeta.setFechaVencimiento(tarjetaActualizada.getFechaVencimiento());
@@ -56,14 +54,14 @@ public class TarjetaServiceImpl implements ITarjetaService {
     }
 
     @Override
-    public void eliminarTarjeta(Long id) {
+    public void eliminarTarjeta(String id) {
         tarjetaRepository.deleteById(id);
     }
-    
+
     // Obtener el listado de tarjetas emitidas hace más de N años
     @Override
     public List<Tarjeta> obtenerTarjetasEmitidasHaceMasDeNAnios(int anios) {
         LocalDate fechaLimite = LocalDate.now().minusYears(anios);
-        return tarjetaRepository.findTarjetasEmitidasHaceMasDeNAnios(fechaLimite);
+        return tarjetaRepository.findByDesdeBefore(fechaLimite);
     }
 }

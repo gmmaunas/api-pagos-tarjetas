@@ -3,7 +3,7 @@ package com.dbd.service.pagos_tarjetas.rest.response;
 import java.time.LocalDate;
 
 public record FinanciacionResponse(
-        Long id,
+        String id,
         String codigo,
         String tituloPromocion,
         String nombreTienda,
@@ -11,7 +11,7 @@ public record FinanciacionResponse(
         LocalDate fechaInicioValidez,
         LocalDate fechaFinValidez,
         String comentarios,
-        Long bancoId,
+        String bancoId,
         String bancoNombre,
         Integer numeroCuotas,
         Double interes

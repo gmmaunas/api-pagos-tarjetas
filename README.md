@@ -2,7 +2,7 @@
 
 **Trabajo Final - DISEÑO DE BASES DE DATOS - MG IS - UNLP - 2025**
 
-Sistema RESTful de gestión de pagos con tarjetas de crédito desarrollado con Spring Boot 3, JPA/Hibernate y MySQL.
+Sistema RESTful de gestión de pagos con tarjetas de crédito desarrollado con Spring Boot 3, Spring Data MongoDB y MongoDB.
 
 ## 📋 Descripción
 
@@ -17,9 +17,9 @@ Este sistema permite gestionar de forma integral:
 
 - **Java 21** con Virtual Threads
 - **Spring Boot 3.5.7**
-- **Spring Data JPA**
-- **Hibernate 6.x**
-- **MySQL 8.0+**
+- **Spring Data MongoDB**
+- **MongoDB 7.0+**
+- **Flapdoodle Embedded MongoDB** (para tests)
 - **Lombok** para reducción de boilerplate
 - **Maven** como gestor de dependencias
 - **SpringDoc OpenAPI 3.0** (Swagger UI) para documentación interactiva
@@ -29,7 +29,7 @@ Este sistema permite gestionar de forma integral:
 
 - **JDK 21** o superior
 - **Maven 3.6+**
-- **MySQL 8.0+** instalado y en ejecución
+- **MongoDB 7.0+** instalado y en ejecución
 - **IDE** (IntelliJ IDEA, Eclipse, VS Code con extensiones Java)
 
 ## ⚙️ Configuración e Instalación
@@ -41,26 +41,49 @@ git clone https://github.com/gmmaunas/api-pagos-tarjetas.git
 cd api-pagos-tarjetas
 ```
 
-### 2. Configurar la base de datos MySQL
+### 2. Configurar MongoDB
 
-La base de datos se crea automáticamente al iniciar la aplicación gracias a la configuración `createDatabaseIfNotExist=true`.
+#### Opción A: Instalación Local
 
-Si prefieres crearla manualmente:
+1. Descargar e instalar MongoDB Community Server desde https://www.mongodb.com/try/download/community
+2. Iniciar el servicio MongoDB:
 
-```sql
-CREATE DATABASE api_pagos_tarjetas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+**Windows:**
+```bash
+net start MongoDB
 ```
 
-### 3. Configurar credenciales (Opcional)
+**Linux/Mac:**
+```bash
+sudo systemctl start mongod
+```
 
-Editar el archivo `src/main/resources/application.yml` si necesitas cambiar las credenciales de MySQL:
+3. Verificar que MongoDB está corriendo:
+
+**Linux/Mac:**
+```bash
+mongosh
+```
+
+#### Opción B: Docker
+
+```bash
+docker run -d -p 27017:27017 --name mongodb mongo:7.0
+```
+
+### 3. Configurar conexión (Opcional)
+
+La aplicación se conecta por defecto a `mongodb://localhost:27017/api_pagos_tarjetas`.
+
+Para cambiar la configuración, editar `src/main/resources/application.yml`:
 
 ```properties
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/api_pagos_tarjetas?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: ""  # Cambiar si tienes contraseña
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/api_pagos_tarjetas
+      # Con autenticación:
+      # uri: mongodb://username:password@localhost:27017/api_pagos_tarjetas
 ```
 
 ### 4. Compilar y ejecutar
@@ -76,15 +99,15 @@ mvn spring-boot:run
 
 La aplicación estará disponible en:
 
-- **API Base URL**: http://localhost:8080/dbd/v1
-- **Swagger UI**: http://localhost:8080/dbd/v1/swagger-ui.html
-- **OpenAPI Docs**: http://localhost:8080/dbd/v1/api-docs
+- **API Base URL**: http://localhost:8081/dbd/v2
+- **Swagger UI**: http://localhost:8081/dbd/v2/swagger-ui.html
+- **OpenAPI Docs**: http://localhost:8081/dbd/v2/api-docs
 
 ### 5. Acceder a la documentación interactiva
 
 Una vez que la aplicación esté en ejecución, accede a Swagger UI:
 
-🔗 http://localhost:8080/dbd/v1/swagger-ui.html
+🔗 http://localhost:8081/dbd/v2/swagger-ui.html
 
 Swagger UI te permite:
 - 📝 Ver todos los endpoints disponibles organizados por controladores
@@ -96,10 +119,11 @@ Swagger UI te permite:
 
 ```
 src/main/java/com/dbd/service/pagos_tarjetas/
-├── config/                          # Configuración de la aplicación
-│   └── OpenApiConfig.java          # Configuración de Swagger/OpenAPI
+├── conf/                          # Configuración de la aplicación
+│   ├── OpenApiConfig.java          # Configuración de Swagger/OpenAPI
+│   └── GlobalControllerExceptionHandler.java # Manejo global de excepciones
 │
-├── model/                           # Entidades JPA del dominio
+├── model/                           # Entidades MongoDB del dominio
 │   ├── Banco.java
 │   ├── TitularTarjeta.java
 │   ├── Tarjeta.java
@@ -112,14 +136,13 @@ src/main/java/com/dbd/service/pagos_tarjetas/
 │   ├── Financiacion.java
 │   └── Pago.java
 │
-├── repository/                      # Repositorios Spring Data JPA
+├── repository/                      # Repositorios Spring Data MongoDB
 │   ├── BancoRepository.java
 │   ├── TitularTarjetaRepository.java
 │   ├── TarjetaRepository.java
 │   ├── CompraRepository.java
 │   ├── CompraPagoUnicoRepository.java
 │   ├── CompraCuotasRepository.java
-│   ├── CuotaRepository.java
 │   ├── PromocionRepository.java
 │   ├── DescuentoRepository.java
 │   ├── FinanciacionRepository.java
@@ -142,59 +165,55 @@ src/main/java/com/dbd/service/pagos_tarjetas/
 │   └── PagoServiceImpl.java
 │
 ├── rest/                            # Capa REST
-│   ├── controller/                  # Controladores REST
-│   │   ├── BancoController.java
-│   │   ├── TitularTarjetaController.java
-│   │   ├── TarjetaController.java
-│   │   ├── CompraController.java
-│   │   ├── PromocionController.java
-│   │   └── PagoController.java
-│   │
-│   ├── request/                     # DTOs de entrada
-│   │   ├── BancoRequest.java
-│   │   ├── TitularTarjetaRequest.java
-│   │   ├── TarjetaRequest.java
-│   │   ├── CompraPagoUnicoRequest.java
-│   │   ├── CompraCuotasRequest.java
-│   │   ├── DescuentoRequest.java
-│   │   ├── FinanciacionRequest.java
-│   │   ├── PagoRequest.java
-│   │   └── EditarFechasVencimientoRequest.java
-│   │
-│   ├── response/                    # DTOs de salida
-│   │   ├── BancoResponse.java
-│   │   ├── TitularTarjetaResponse.java
-│   │   ├── TarjetaResponse.java
-│   │   ├── CompraResponse.java
-│   │   ├── CompraPagoUnicoResponse.java
-│   │   ├── CompraCuotasResponse.java
-│   │   ├── CuotaResponse.java
-│   │   ├── PromocionResponse.java
-│   │   ├── DescuentoResponse.java
-│   │   ├── FinanciacionResponse.java
-│   │   ├── PagoResponse.java
-│   │   └── ApiErrorResponse.java
-│   │
-│   └── mapper/                      # Mappers Entity ↔ DTO
-│       ├── BancoMapper.java
-│       ├── TitularTarjetaMapper.java
-│       ├── TarjetaMapper.java
-│       ├── CompraMapper.java
-│       ├── CuotaMapper.java
-│       ├── PromocionMapper.java
-│       └── PagoMapper.java
-│
-└── exception/                       # Manejo de excepciones
-    └── GlobalExceptionHandler.java
+    ├── controller/                  # Controladores REST
+    │   ├── BancoController.java
+    │   ├── TitularTarjetaController.java
+    │   ├── TarjetaController.java
+    │   ├── CompraController.java
+    │   ├── PromocionController.java
+    │   └── PagoController.java
+    │
+    ├── request/                     # DTOs de entrada
+    │   ├── BancoRequest.java
+    │   ├── TitularTarjetaRequest.java
+    │   ├── TarjetaRequest.java
+    │   ├── CompraPagoUnicoRequest.java
+    │   ├── CompraCuotasRequest.java
+    │   ├── DescuentoRequest.java
+    │   ├── FinanciacionRequest.java
+    │   ├── PagoRequest.java
+    │   └── EditarFechasVencimientoRequest.java
+    │
+    ├── response/                    # DTOs de salida
+    │   ├── BancoResponse.java
+    │   ├── TitularTarjetaResponse.java
+    │   ├── TarjetaResponse.java
+    │   ├── CompraResponse.java
+    │   ├── CompraPagoUnicoResponse.java
+    │   ├── CompraCuotasResponse.java
+    │   ├── CuotaResponse.java
+    │   ├── PromocionResponse.java
+    │   ├── DescuentoResponse.java
+    │   ├── FinanciacionResponse.java
+    │   ├── PagoResponse.java
+    │   └── ApiErrorResponse.java
+    │
+    └── mapper/                      # Mappers Entity ↔ DTO
+        ├── BancoMapper.java
+        ├── TitularTarjetaMapper.java
+        ├── TarjetaMapper.java
+        ├── CompraMapper.java
+        ├── PromocionMapper.java
+        └── PagoMapper.java
 
 src/test/java/com/dbd/service/pagos_tarjetas/
 ├── PagosTarjetasApplicationTests.java
-└── ApiPagosTarjetasIntegrationTests.java  # Tests de integración completos
+└── ApiPagosTarjetasIntegrationTests.java  # 14 Tests de integración completos
 ```
 
 ## 🔌 API Endpoints
 
-### 🏦 Bancos (/dbd/v1/bancos)
+### 🏦 Bancos (/dbd/v2/bancos)
 
 - `POST /bancos` - Crear un banco
 - `GET /bancos` - Obtener todos los bancos
@@ -205,7 +224,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 - `GET /bancos/mas-compras` - **Obtener banco con mayor cantidad de compras**
 - `GET /bancos/clientes-por-banco` - **Obtener número de clientes por banco**
 
-### 👤 Titulares (/dbd/v1/titulares)
+### 👤 Titulares (/dbd/v2/titulares)
 
 - `POST /titulares` - Crear un titular
 - `GET /titulares` - Obtener todos los titulares
@@ -217,7 +236,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 - `DELETE /titulares/{id}` - Eliminar titular
 - `GET /titulares/top-compradores?limite=10` - **Top N titulares con mayor monto en compras**
 
-### 💳 Tarjetas (/dbd/v1/tarjetas)
+### 💳 Tarjetas (/dbd/v2/tarjetas)
 
 - `POST /tarjetas` - Crear una tarjeta
 - `GET /tarjetas` - Obtener todas las tarjetas
@@ -229,7 +248,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 - `DELETE /tarjetas/{id}` - Eliminar tarjeta
 - `GET /tarjetas/emitidas?anios=5` - **Tarjetas emitidas hace más de N años**
 
-### 🛒 Compras (/dbd/v1/compras)
+### 🛒 Compras (/dbd/v2/compras)
 
 - `POST /compras/pago-unico` - Crear compra en un solo pago
 - `POST /compras/cuotas` - Crear compra en cuotas
@@ -240,7 +259,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 - `GET /compras/local-mas-compras` - **Obtener local con mayor cantidad de compras**
 - `DELETE /compras/{id}` - Eliminar compra
 
-### 🎁 Promociones (/dbd/v1/promociones)
+### 🎁 Promociones (/dbd/v2/promociones)
 
 - `POST /promociones/descuento` - **Agregar promoción de descuento a un banco**
 - `POST /promociones/financiacion` - Agregar promoción de financiación
@@ -253,7 +272,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 - `DELETE /promociones/{id}` - Eliminar promoción
 - `DELETE /promociones/codigo/{codigo}` - **Eliminar promoción por código**
 
-### 💰 Pagos (/dbd/v1/pagos)
+### 💰 Pagos (/dbd/v2/pagos)
 
 - `POST /pagos/generar` - **Generar pago mensual con items**
 - `GET /pagos` - Obtener todos los pagos
@@ -271,7 +290,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 ### 1. Agregar una promoción de descuento a un banco
 
 ```bash
-curl -X POST http://localhost:8080/dbd/v1/promociones/descuento \
+curl -X POST http://localhost:8081/dbd/v2/promociones/descuento \
   -H "Content-Type: application/json" \
   -d '{
     "codigo": "DESC-2025-001",
@@ -291,7 +310,7 @@ curl -X POST http://localhost:8080/dbd/v1/promociones/descuento \
 ### 2. Editar fechas de vencimiento de un pago
 
 ```bash
-curl -X PUT "http://localhost:8080/dbd/v1/pagos/codigo/PAG-202501/fechas-vencimiento" \
+curl -X PUT "http://localhost:8081/dbd/v2/pagos/codigo/PAG-202501/fechas-vencimiento" \
   -H "Content-Type: application/json" \
   -d '{
     "primerVencimiento": "2025-01-15",
@@ -302,7 +321,7 @@ curl -X PUT "http://localhost:8080/dbd/v1/pagos/codigo/PAG-202501/fechas-vencimi
 ### 3. Generar pago mensual
 
 ```bash
-curl -X POST http://localhost:8080/dbd/v1/pagos/generar \
+curl -X POST http://localhost:8081/dbd/v2/pagos/generar \
   -H "Content-Type: application/json" \
   -d '{
     "mes": "01",
@@ -317,49 +336,49 @@ curl -X POST http://localhost:8080/dbd/v1/pagos/generar \
 ### 4. Obtener tarjetas emitidas hace más de 5 años
 
 ```bash
-curl -X GET "http://localhost:8080/dbd/v1/tarjetas/emitidas?anios=5"
+curl -X GET "http://localhost:8081/dbd/v2/tarjetas/emitidas?anios=5"
 ```
 
 ### 5. Obtener información de una compra con cuotas
 
 ```bash
-curl -X GET "http://localhost:8080/dbd/v1/compras/123/detalles"
+curl -X GET "http://localhost:8081/dbd/v2/compras/123/detalles"
 ```
 
 ### 6. Eliminar una promoción por código
 
 ```bash
-curl -X DELETE "http://localhost:8080/dbd/v1/promociones/codigo/DESC-2025-001"
+curl -X DELETE "http://localhost:8081/dbd/v2/promociones/codigo/DESC-2025-001"
 ```
 
 ### 7. Obtener promociones disponibles de un local entre fechas
 
 ```bash
-curl -X GET "http://localhost:8080/dbd/v1/promociones/local/30-12345678-9?fechaInicio=2025-01-01&fechaFin=2025-03-31"
+curl -X GET "http://localhost:8081/dbd/v2/promociones/local/30-12345678-9?fechaInicio=2025-01-01&fechaFin=2025-03-31"
 ```
 
 ### 8. Obtener top 10 titulares con mayor monto en compras
 
 ```bash
-curl -X GET "http://localhost:8080/dbd/v1/titulares/top-compradores?limite=10"
+curl -X GET "http://localhost:8081/dbd/v2/titulares/top-compradores?limite=10"
 ```
 
 ### 9. Obtener local con mayor cantidad de compras
 
 ```bash
-curl -X GET "http://localhost:8080/dbd/v1/compras/local-mas-compras"
+curl -X GET "http://localhost:8081/dbd/v2/compras/local-mas-compras"
 ```
 
 ### 10. Obtener banco con mayor cantidad de compras
 
 ```bash
-curl -X GET "http://localhost:8080/dbd/v1/bancos/mas-compras"
+curl -X GET "http://localhost:8081/dbd/v2/bancos/mas-compras"
 ```
 
 ### 11. Obtener número de clientes por banco
 
 ```bash
-curl -X GET "http://localhost:8080/dbd/v1/bancos/clientes-por-banco"
+curl -X GET "http://localhost:8081/dbd/v2/bancos/clientes-por-banco"
 ```
 
 ## 🎯 Funcionalidades Principales
@@ -442,6 +461,7 @@ Los tests de integración `ApiPagosTarjetasIntegrationTests` validan:
 11. ✅ Obtener número de clientes por banco
 12. ✅ Obtener pago por código con items
 13. ✅ Obtener todos los pagos
+14. ✅ Crear compra en cuotas con promociones
 
 ## 🔧 Características Técnicas
 
@@ -454,9 +474,9 @@ Los tests de integración `ApiPagosTarjetasIntegrationTests` validan:
 
 **Optimizaciones**
 
-- ✅ **Eager Loading** con `JOIN FETCH` para evitar N+1 queries
+- ✅ **Carga de referencias** con `@DBRef` para optimizar queries
 - ✅ **Virtual Threads** (Java 21) para mejor concurrencia
-- ✅ **Connection Pooling** con HikariCP
+- ✅ **Connection Pooling** configurado para MongoDB
 
 **Validaciones**
 
@@ -470,8 +490,8 @@ Los tests de integración `ApiPagosTarjetasIntegrationTests` validan:
 El proyecto incluye logging detallado:
 
 - **Nivel INFO**: Operaciones principales
-- **Nivel DEBUG**: Queries SQL y detalles de ejecución
-- **Nivel TRACE**: Binding de parámetros SQL
+- **Nivel DEBUG**: Queries MongoDB y detalles de ejecución
+- **Nivel TRACE**: Detalles de operaciones de base de datos
 
 Los logs se guardan en:
 
@@ -496,10 +516,10 @@ java -jar target/pagos_tarjetas-1.0.0.jar
 **Variables de entorno**
 
 ```bash
-export SPRING_DATASOURCE_URL=jdbc:mysql://tu-servidor:3306/api_pagos_tarjetas
-export SPRING_DATASOURCE_USERNAME=tu_usuario
-export SPRING_DATASOURCE_PASSWORD=tu_password
-export SERVER_PORT=8080
+export SPRING_DATA_MONGODB_URI=mongodb://localhost:27017/api_pagos_tarjetas
+# Con autenticación:
+# export SPRING_DATA_MONGODB_URI=mongodb://username:password@host:27017/api_pagos_tarjetas
+export SERVER_PORT=8081
 ```
 
 ## 📄 Licencia

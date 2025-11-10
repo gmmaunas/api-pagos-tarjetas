@@ -29,14 +29,14 @@ public interface ICompraService {
      * @param compraId ID de la compra
      * @return Compra con detalles
      */
-    Compra obtenerCompraConDetalles(Long compraId);
+    Compra obtenerCompraConDetalles(String compraId);
 
     /**
      * Obtiene una compra por su ID
      * @param id ID de la compra
      * @return Compra encontrada
      */
-    Compra obtenerCompraPorId(Long id);
+    Compra obtenerCompraPorId(String id);
 
     /**
      * Obtiene todas las compras
@@ -49,7 +49,7 @@ public interface ICompraService {
      * @param tarjetaId ID de la tarjeta
      * @return Lista de compras de la tarjeta
      */
-    List<Compra> obtenerComprasPorTarjeta(Long tarjetaId);
+    List<Compra> obtenerComprasPorTarjeta(String tarjetaId);
 
     /**
      * Obtiene el nombre del local con mayor cantidad de compras
@@ -61,5 +61,5 @@ public interface ICompraService {
      * Elimina una compra por su ID
      * @param id ID de la compra a eliminar
      */
-    void eliminarCompra(Long id);
+    void eliminarCompra(String id);
 }

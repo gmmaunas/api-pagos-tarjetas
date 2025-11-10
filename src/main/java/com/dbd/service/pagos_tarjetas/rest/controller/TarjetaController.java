@@ -38,7 +38,7 @@ public class TarjetaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TarjetaResponse> obtenerTarjetaPorId(@PathVariable Long id) {
+    public ResponseEntity<TarjetaResponse> obtenerTarjetaPorId(@PathVariable String id) {
         Tarjeta tarjeta = tarjetaService.obtenerTarjetaPorId(id);
         return ResponseEntity.ok(TarjetaMapper.toResponse(tarjeta));
     }
@@ -59,7 +59,7 @@ public class TarjetaController {
     }
 
     @GetMapping("/titular/{titularId}")
-    public ResponseEntity<List<TarjetaResponse>> obtenerTarjetasPorTitular(@PathVariable Long titularId) {
+    public ResponseEntity<List<TarjetaResponse>> obtenerTarjetasPorTitular(@PathVariable String titularId) {
         List<Tarjeta> tarjetas = tarjetaService.obtenerTarjetasPorTitular(titularId);
         List<TarjetaResponse> response = tarjetas.stream()
                 .map(TarjetaMapper::toResponse)
@@ -68,7 +68,7 @@ public class TarjetaController {
     }
 
     @GetMapping("/banco/{bancoId}")
-    public ResponseEntity<List<TarjetaResponse>> obtenerTarjetasPorBanco(@PathVariable Long bancoId) {
+    public ResponseEntity<List<TarjetaResponse>> obtenerTarjetasPorBanco(@PathVariable String bancoId) {
         List<Tarjeta> tarjetas = tarjetaService.obtenerTarjetasPorBanco(bancoId);
         List<TarjetaResponse> response = tarjetas.stream()
                 .map(TarjetaMapper::toResponse)
@@ -78,7 +78,7 @@ public class TarjetaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<TarjetaResponse> actualizarTarjeta(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody TarjetaRequest request) {
         Tarjeta tarjeta = tarjetaService.obtenerTarjetaPorId(id);
         TitularTarjeta titular = titularTarjetaService.obtenerTitularPorId(request.titularId());
@@ -89,7 +89,7 @@ public class TarjetaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarTarjeta(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarTarjeta(@PathVariable String id) {
         tarjetaService.eliminarTarjeta(id);
         return ResponseEntity.noContent().build();
     }

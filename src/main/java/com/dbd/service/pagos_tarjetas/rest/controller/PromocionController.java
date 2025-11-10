@@ -49,7 +49,7 @@ public class PromocionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerPromocionPorId(@PathVariable Long id) {
+    public ResponseEntity<?> obtenerPromocionPorId(@PathVariable String id) {
         Promocion promocion = promocionService.obtenerPromocionPorId(id);
 
         return ResponseEntity.ok(switch (promocion) {
@@ -80,7 +80,7 @@ public class PromocionController {
     }
 
     @GetMapping("/banco/{bancoId}")
-    public ResponseEntity<List<PromocionResponse>> obtenerPromocionesPorBanco(@PathVariable Long bancoId) {
+    public ResponseEntity<List<PromocionResponse>> obtenerPromocionesPorBanco(@PathVariable String bancoId) {
         List<Promocion> promociones = promocionService.obtenerPromocionesPorBanco(bancoId);
         List<PromocionResponse> response = promociones.stream()
                 .map(PromocionMapper::toResponse)
@@ -103,7 +103,7 @@ public class PromocionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarPromocion(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody Object request) {
         // Por ahora retornamos un error indicando que se debe usar endpoints específicos
         return ResponseEntity.badRequest()
@@ -117,7 +117,7 @@ public class PromocionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarPromocion(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarPromocion(@PathVariable String id) {
         promocionService.eliminarPromocion(id);
         return ResponseEntity.noContent().build();
     }
