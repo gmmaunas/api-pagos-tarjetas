@@ -23,6 +23,9 @@ public class BancoServiceImpl implements IBancoService {
     private final MongoTemplate mongoTemplate;
 
     public Banco crearBanco(Banco banco) {
+        bancoRepository.findByCuit(banco.getCuit()).ifPresent(b -> {
+            throw new IllegalArgumentException("Ya existe un banco con CUIT: " + banco.getCuit());
+        });
         return bancoRepository.save(banco);
     }
 

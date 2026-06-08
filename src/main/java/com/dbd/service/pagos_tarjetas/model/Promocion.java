@@ -5,7 +5,6 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import java.time.LocalDate;
 
 @Document(collection = "promociones")
@@ -34,7 +33,6 @@ public abstract class Promocion {
 
     private String comentarios;
 
-    @DBRef
     private Banco banco;
 
     // Campo discriminador para identificar el tipo

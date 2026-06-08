@@ -32,6 +32,5 @@ public class Tarjeta {
     @DBRef
     private TitularTarjeta titularTarjeta;
 
-    @DBRef
     private Banco banco;
 }

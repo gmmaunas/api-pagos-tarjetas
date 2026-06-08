@@ -511,4 +511,128 @@ class ApiPagosTarjetasIntegrationTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
     }
+
+    /**
+     * Test G1: Verificar relación ManyToMany Banco-TitularTarjeta (corrección)
+     * Un titular puede pertenecer a múltiples bancos y viceversa.
+     */
+    @Test
+    @Order(14)
+    @DisplayName("G1. TitularTarjeta puede pertenecer a múltiples bancos (ManyToMany)")
+    void testTitularPertenecesAMultiplesBancos() {
+        // Crear un segundo banco
+        BancoRequest banco2Request = new BancoRequest(
+                "Banco Secundario Test",
+                "30-66666666-6",
+                "Av. Secundaria 456",
+                "011-6666-6666",
+                "www.bancosecundario.com"
+        );
+        ResponseEntity<BancoResponse> banco2Response = restTemplate.postForEntity(
+                "/bancos", banco2Request, BancoResponse.class);
+        assertThat(banco2Response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String banco2Id = banco2Response.getBody().id();
+
+        // Crear titular asociado a los dos bancos
+        TitularTarjetaRequest request = new TitularTarjetaRequest(
+                "Maria MultiBank",
+                "27-55555555-5",
+                "55555555",
+                "Calle Dual 789",
+                "011-5555-5555",
+                LocalDate.now(),
+                List.of(bancoId, banco2Id)
+        );
+        ResponseEntity<TitularTarjetaResponse> response = restTemplate.postForEntity(
+                "/titulares", request, TitularTarjetaResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().bancos())
+                .as("El titular debe pertenecer a exactamente 2 bancos")
+                .hasSize(2);
+    }
+
+    /**
+     * Test G3: Verificar eliminación segura de promoción aplicada a una compra (corrección)
+     * Al eliminar una promoción que fue aplicada a una compra, la compra debe seguir existiendo.
+     */
+    @Test
+    @Order(15)
+    @DisplayName("G3. Eliminar promoción aplicada a una compra no elimina ni rompe la compra")
+    void testEliminarPromocionAplicadaNoRompeCompra() {
+        // Crear una promoción válida hoy para una tienda específica
+        DescuentoRequest promoRequest = new DescuentoRequest(
+                "DESC-G3-SAFE",
+                "Descuento Seguro G3",
+                "Tienda G3 Safe",
+                "30-77777777-7",
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusMonths(6),
+                null,
+                bancoId,
+                5.0,
+                null,
+                false
+        );
+        ResponseEntity<DescuentoResponse> promoResp = restTemplate.postForEntity(
+                "/promociones/descuento", promoRequest, DescuentoResponse.class);
+        assertThat(promoResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Crear compra en esa tienda — la promoción se aplica automáticamente al mismo banco
+        CompraPagoUnicoRequest compraRequest = new CompraPagoUnicoRequest(
+                "VOUCHER-G3-SAFE-001",
+                "Tienda G3 Safe",
+                "30-77777777-7",
+                10000.0,
+                LocalDate.now().atStartOfDay(),
+                tarjetaId,
+                0.0,
+                List.of()
+        );
+        ResponseEntity<CompraPagoUnicoResponse> compraResp = restTemplate.postForEntity(
+                "/compras/pago-unico", compraRequest, CompraPagoUnicoResponse.class);
+        assertThat(compraResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String compraG3Id = compraResp.getBody().id();
+
+        // Eliminar la promoción (debe desvincularse de la compra sin error de FK)
+        ResponseEntity<Void> deleteResp = restTemplate.exchange(
+                "/promociones/codigo/DESC-G3-SAFE",
+                HttpMethod.DELETE, null, Void.class);
+        assertThat(deleteResp.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        // La compra debe seguir siendo accesible sin referencias rotas
+        ResponseEntity<CompraPagoUnicoResponse> compraAun = restTemplate.getForEntity(
+                "/compras/" + compraG3Id + "/detalles", CompraPagoUnicoResponse.class);
+        assertThat(compraAun.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(compraAun.getBody()).isNotNull();
+    }
+
+    /**
+     * Test G2: Verificar que las cuotas del pago mensual incluyen el ID de la compra origen (corrección)
+     * Cada cuota en el pago mensual debe informar a qué compra pertenece.
+     */
+    @Test
+    @Order(16)
+    @DisplayName("G2. Las cuotas en el pago mensual incluyen compraId (ítem con origen identificado)")
+    void testCuotasEnPagoIncluyenCompraId() {
+        if (codigoPago == null) {
+            return;
+        }
+        ResponseEntity<PagoResponse> response = restTemplate.getForEntity(
+                "/pagos/codigo/" + codigoPago + "/items",
+                PagoResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+
+        List<CuotaResponse> cuotas = response.getBody().cuotas();
+        if (cuotas != null && !cuotas.isEmpty()) {
+            cuotas.forEach(cuota ->
+                    assertThat(cuota.compraId())
+                            .as("Cuota #%d debe incluir el ID de la compra origen", cuota.numero())
+                            .isNotNull()
+            );
+        }
+    }
 }
