@@ -23,25 +23,25 @@ public class TitularTarjetaServiceImpl implements ITitularTarjetaService {
 
     @Override
     public TitularTarjeta obtenerTitularPorId(Long id) {
-        return titularTarjetaRepository.findById(id)
+        return titularTarjetaRepository.findByIdWithBancos(id)
             .orElseThrow(() -> new RuntimeException("Titular no encontrado con id: " + id));
     }
 
     @Override
     public TitularTarjeta obtenerTitularPorCuit(String cuit) {
-        return titularTarjetaRepository.findByCuit(cuit)
+        return titularTarjetaRepository.findByCuitWithBancos(cuit)
             .orElseThrow(() -> new RuntimeException("Titular no encontrado con CUIT: " + cuit));
     }
 
     @Override
     public TitularTarjeta obtenerTitularPorDni(String dni) {
-        return titularTarjetaRepository.findByDni(dni)
+        return titularTarjetaRepository.findByDniWithBancos(dni)
             .orElseThrow(() -> new RuntimeException("Titular no encontrado con DNI: " + dni));
     }
 
     @Override
     public List<TitularTarjeta> obtenerTodosLosTitulares() {
-        return titularTarjetaRepository.findAllWithBanco();
+        return titularTarjetaRepository.findAllWithBancos();
     }
 
     @Override
@@ -51,10 +51,18 @@ public class TitularTarjetaServiceImpl implements ITitularTarjetaService {
 
     @Override
     public TitularTarjeta actualizarTitular(Long id, TitularTarjeta titularActualizado) {
-        TitularTarjeta titular = obtenerTitularPorId(id);
+        TitularTarjeta titular = titularTarjetaRepository.findByIdWithBancos(id)
+            .orElseThrow(() -> new RuntimeException("Titular no encontrado con id: " + id));
         titular.setNombreCompleto(titularActualizado.getNombreCompleto());
+        titular.setDni(titularActualizado.getDni());
+        titular.setCuit(titularActualizado.getCuit());
         titular.setDireccion(titularActualizado.getDireccion());
         titular.setTelefono(titularActualizado.getTelefono());
+        titular.setFechaAlta(titularActualizado.getFechaAlta());
+        if (titularActualizado.getBancos() != null && !titularActualizado.getBancos().isEmpty()) {
+            titular.getBancos().clear();
+            titular.getBancos().addAll(titularActualizado.getBancos());
+        }
         return titularTarjetaRepository.save(titular);
     }
 

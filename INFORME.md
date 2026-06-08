@@ -11,7 +11,7 @@
 ### 1.1 Relaciones Bidireccionales
 
 Se implementaron en:
-- **Banco ↔ TitularTarjeta**
+- **Banco ↔ TitularTarjeta** — relación **ManyToMany** con tabla intermedia `banco_titular` (`titular_id`, `banco_id`). Un titular puede pertenecer a múltiples bancos y un banco puede tener múltiples titulares, respetando el diagrama del enunciado.
 - **Pago ↔ Cuota**
 - **Tarjeta ↔ Compra**
 
@@ -78,13 +78,37 @@ mvn test
 
 **Detalles completos:** Ver `README.md`
 
-## 3. Tests
+## 3. Correcciones Aplicadas
+
+### 3.1 Relación Banco ↔ TitularTarjeta (ManyToMany)
+
+**Problema:** La relación estaba implementada como `OneToMany` (un banco, muchos titulares), sin tabla intermedia, lo que no respetaba el diagrama donde un titular puede pertenecer a múltiples bancos.
+
+**Solución:** Se cambió a `@ManyToMany` con tabla `banco_titular`. `TitularTarjetaRequest` ahora acepta `List<Long> bancoIds`. `TitularTarjetaResponse` devuelve `List<BancoResponse> bancos`.
+
+### 3.2 Generación de pago mensual — ítems correctamente informados
+
+**Problema 1:** `CuotaResponse` no incluía el ID de la compra origen (`compraId`), imposibilitando identificar a qué compra pertenece cada cuota dentro de un pago.
+
+**Solución:** Se agregó el campo `compraId` (columna `compra_id` ya existente en la tabla `cuotas`) a `Cuota.java` y a `CuotaResponse`, y se actualizó `CompraMapper.toCuotaResponse`.
+
+**Problema 2:** `Descuento.aplicarAPagoUnico()` tenía la condición invertida: `if (!soloContado) return 0.0`, por lo que descuentos con `soloContado=false` **no se aplicaban** a compras al contado, produciendo un `montoFinal` incorrecto y, en consecuencia, un `precioTotal` incorrecto en el pago.
+
+**Solución:** Se eliminó la condición invertida. Un `Descuento` siempre se aplica a pagos al contado; `soloContado` solo restringe su aplicación a compras en cuotas.
+
+### 3.3 Eliminación de promoción con compras asociadas
+
+**Problema:** Al eliminar una promoción con `DELETE`, si existían registros en la tabla `compra_promocion` (relación ManyToMany con `Compra`), la base de datos lanzaba una violación de clave foránea, o los datos quedaban inconsistentes.
+
+**Solución:** Antes del `delete`, se itera sobre las compras asociadas (`promocion.getCompras()`) y se llama a `compra.getPromocionesAplicadas().remove(promocion)` desde el lado propietario de la relación. Hibernate elimina la fila de `compra_promocion` dentro de la misma transacción, permitiendo luego el `DELETE` de la promoción sin errores.
+
+## 4. Tests
 
 13 tests de integración implementados validando todas las funcionalidades requeridas.
 
 **Archivo:** `ApiPagosTarjetasIntegrationTests.java`
 
-## 4. Conclusión
+## 5. Conclusión
 
 Implementación completa con:
 
@@ -92,5 +116,8 @@ Implementación completa con:
 - ✅ Cascadas según lógica de negocio
 - ✅ Transacciones para consistencia
 - ✅ Herencia normalizada
+- ✅ Modelo de datos corregido (ManyToMany Banco ↔ TitularTarjeta)
+- ✅ Pago mensual con ítems correctamente informados
+- ✅ Eliminación segura de promociones
 
 **Repositorio:** https://github.com/gmmaunas/api-pagos-tarjetas

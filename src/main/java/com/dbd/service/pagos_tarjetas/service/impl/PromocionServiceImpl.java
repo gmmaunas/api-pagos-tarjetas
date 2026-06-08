@@ -1,5 +1,6 @@
 package com.dbd.service.pagos_tarjetas.service.impl;
 
+import com.dbd.service.pagos_tarjetas.model.Compra;
 import com.dbd.service.pagos_tarjetas.model.Descuento;
 import com.dbd.service.pagos_tarjetas.model.Financiacion;
 import com.dbd.service.pagos_tarjetas.model.Promocion;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -67,19 +69,28 @@ public class PromocionServiceImpl implements IPromocionService {
     }
     
     // Eliminar una promoción a través de su código
-    // Nota: Las promociones pueden haber sido aplicadas a compras, pero se mantiene la referencia
     @Override
     public void eliminarPromocionPorCodigo(String codigo) {
-        Promocion promocion = obtenerPromocionPorCodigo(codigo);
-        
-        // La eliminación en cascada no afectará las compras debido a la relación ManyToMany
-        // Las compras mantienen la referencia histórica de las promociones aplicadas
+        Promocion promocion = promocionRepository.findByCodigoConCompras(codigo)
+            .orElseThrow(() -> new RuntimeException("Promoci\u00f3n no encontrada con c\u00f3digo: " + codigo));
+
+        for (Compra compra : new ArrayList<>(promocion.getCompras())) {
+            compra.getPromocionesAplicadas().remove(promocion);
+        }
+
         promocionRepository.delete(promocion);
     }
 
     @Override
     public void eliminarPromocion(Long id) {
-        promocionRepository.deleteById(id);
+        Promocion promocion = promocionRepository.findByIdConCompras(id)
+            .orElseThrow(() -> new RuntimeException("Promoci\u00f3n no encontrada con id: " + id));
+
+        for (Compra compra : new ArrayList<>(promocion.getCompras())) {
+            compra.getPromocionesAplicadas().remove(promocion);
+        }
+
+        promocionRepository.delete(promocion);
     }
 
     @Override

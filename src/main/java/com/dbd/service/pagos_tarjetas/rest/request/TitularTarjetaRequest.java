@@ -2,7 +2,9 @@ package com.dbd.service.pagos_tarjetas.rest.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.List;
 
 public record TitularTarjetaRequest(
         @NotBlank(message = "El nombre completo es obligatorio")
@@ -23,6 +25,7 @@ public record TitularTarjetaRequest(
         @NotNull(message = "La fecha de alta es obligatoria")
         LocalDate fechaAlta,
 
-        @NotNull(message = "El ID del banco es obligatorio")
-        Long bancoId
+        @NotNull(message = "Los IDs de los bancos son obligatorios")
+        @Size(min = 1, message = "Debe especificar al menos un banco")
+        List<Long> bancoIds
 ) {}

@@ -29,15 +29,8 @@ public class Descuento extends Promocion {
 
     @Override
     public Double aplicarAPagoUnico(CompraPagoUnico compra, Double montoActual) {
-        // Si el descuento es solo para contado, aplicar
-        if (!soloContado) {
-            return 0.0;
-        }
-
-        // Calcular el descuento
         Double descuentoAplicado = montoActual * (porcentajeDescuento / 100);
 
-        // Aplicar tope si existe
         if (tope != null && descuentoAplicado > tope) {
             descuentoAplicado = tope;
         }

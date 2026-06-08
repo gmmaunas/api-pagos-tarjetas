@@ -149,7 +149,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"nombreCompleto\": \"Juan Pérez\",\n    \"dni\": \"12345678\",\n    \"cuit\": \"20-12345678-9\",\n    \"direccion\": \"Calle Falsa 123, CABA\",\n    \"telefono\": \"11-1234-5678\",\n    \"fechaAlta\": \"2020-01-15\",\n    \"bancoId\": {{bancoId}}\n}"
+							"raw": "{\n    \"nombreCompleto\": \"Juan Pérez\",\n    \"dni\": \"12345678\",\n    \"cuit\": \"20-12345678-9\",\n    \"direccion\": \"Calle Falsa 123, CABA\",\n    \"telefono\": \"11-1234-5678\",\n    \"fechaAlta\": \"2020-01-15\",\n    \"bancoIds\": [{{bancoId}}]\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/titulares",

@@ -37,10 +37,15 @@ public class TitularTarjeta {
     @Column(nullable = false)
     private LocalDate fechaAlta;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "banco_id", nullable = false)
-    private Banco banco;
-    
+    @ManyToMany
+    @JoinTable(
+        name = "banco_titular",
+        joinColumns = @JoinColumn(name = "titular_id"),
+        inverseJoinColumns = @JoinColumn(name = "banco_id")
+    )
+    @Builder.Default
+    private List<Banco> bancos = new ArrayList<>();
+
     @OneToMany(mappedBy = "titularTarjeta", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Tarjeta> tarjetas = new ArrayList<>();

@@ -33,7 +33,7 @@ public class Banco {
     @Column(nullable = false)
     private String direccionWeb;
     
-    @OneToMany(mappedBy = "banco", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "bancos")
     @Builder.Default
     private List<TitularTarjeta> miembros = new ArrayList<>();
     

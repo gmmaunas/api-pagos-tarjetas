@@ -379,10 +379,11 @@ curl -X GET "http://localhost:8080/dbd/v1/bancos/clientes-por-banco"
   - Reemplaza el interés estándar de la compra
 - ✅ Validación automática de vigencia de promociones
 - ✅ Asociación de promociones a bancos específicos
+- ✅ **Eliminación segura**: al eliminar una promoción se desvincula de todas las compras asociadas antes del DELETE, evitando violaciones de clave foránea
 
 ### 3. Generación de Pagos Mensuales
 - ✅ Generación automática de pagos mensuales con código único
-- ✅ Incluye **cuotas del mes** y **compras en un solo pago del mes anterior**
+- ✅ Incluye **cuotas del mes** (con referencia a su compra origen) y **compras en un solo pago del mes anterior**
 - ✅ Cálculo automático del total a pagar
 - ✅ Dos fechas de vencimiento con recargos configurables
 - ✅ Edición de fechas de vencimiento post-generación
@@ -398,8 +399,8 @@ curl -X GET "http://localhost:8080/dbd/v1/bancos/clientes-por-banco"
 
 ### Relaciones Clave
 
-- Un **Banco** tiene muchos **Titulares**, **Tarjetas** y **Promociones**
-- Un **Titular** pertenece a un **Banco** y tiene muchas **Tarjetas**
+- Un **Banco** tiene muchos **Titulares** (ManyToMany, tabla `banco_titular`), **Tarjetas** y **Promociones**
+- Un **Titular** puede pertenecer a **múltiples Bancos** y tiene muchas **Tarjetas**
 - Una **Tarjeta** pertenece a un **Titular** y un **Banco**, tiene muchas **Compras**
 - Una **Compra** (abstracta) puede ser:
   - **CompraPagoUnico**: Se paga en el mes siguiente
@@ -431,15 +432,15 @@ Los tests de integración `ApiPagosTarjetasIntegrationTests` validan:
 
 1. ✅ Agregar promoción de descuento
 2. ✅ Editar fechas de vencimiento de un pago
-3. ✅ Generar pago mensual con items
+3. ✅ Generar pago mensual con items (cuotas con `compraId` + compras al contado)
 4. ✅ Obtener tarjetas emitidas hace más de 5 años
 5. ✅ Obtener información de compra con cuotas
-6. ✅ Eliminar promoción por código
+6. ✅ Eliminar promoción por código (desvinculando compras asociadas)
 7. ✅ Obtener promociones disponibles por local y fechas
 8. ✅ Obtener top 10 titulares con mayor monto
 9. ✅ Obtener local con más compras
 10. ✅ Obtener banco con más compras
-11. ✅ Obtener número de clientes por banco
+11. ✅ Obtener número de clientes por banco (usando tabla `banco_titular`)
 12. ✅ Obtener pago por código con items
 13. ✅ Obtener todos los pagos
 

@@ -6,5 +6,6 @@ public record CuotaResponse(
         Double precio,
         String mes,
         String anio,
+        Long compraId,
         Long pagoId
 ) {}

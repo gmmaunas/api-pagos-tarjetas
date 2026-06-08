@@ -28,6 +28,9 @@ public class Cuota {
     @Column(nullable = false)
     private String anio;
     
+    @Column(name = "compra_id", insertable = false, updatable = false)
+    private Long compraId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "compra_id", nullable = false)
     private CompraCuotas compra;

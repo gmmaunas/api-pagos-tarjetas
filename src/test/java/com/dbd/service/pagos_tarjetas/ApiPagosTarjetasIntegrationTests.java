@@ -77,7 +77,7 @@ class ApiPagosTarjetasIntegrationTests {
                 "Calle Test 456",
                 "011-8765-4321",
                 LocalDate.now(),
-                bancoId
+                List.of(bancoId)
         );
         ResponseEntity<TitularTarjetaResponse> titularResponse = restTemplate.postForEntity(
                 "/titulares",
@@ -260,8 +260,8 @@ class ApiPagosTarjetasIntegrationTests {
         // Puede fallar si ya existe el pago
         if (response.getStatusCode() == HttpStatus.CREATED) {
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().mes()).isEqualTo(Integer.parseInt(mes));
-            assertThat(response.getBody().anio()).isEqualTo(Integer.parseInt(anio));
+            assertThat(response.getBody().mes()).isEqualTo(mes);
+            assertThat(response.getBody().anio()).isEqualTo(anio);
             assertThat(response.getBody().precioTotal()).isGreaterThan(0);
         }
     }

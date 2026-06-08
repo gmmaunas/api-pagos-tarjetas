@@ -18,6 +18,13 @@ public interface PromocionRepository extends JpaRepository<Promocion, Long> {
     @Query("SELECT p FROM Promocion p JOIN FETCH p.banco WHERE p.codigo = :codigo")
     Optional<Promocion> findByCodigoConBanco(@Param("codigo") String codigo);
 
+    // Cargar la promoción con sus compras asociadas para desvincularlas antes de eliminar
+    @Query("SELECT DISTINCT p FROM Promocion p LEFT JOIN FETCH p.compras WHERE p.id = :id")
+    Optional<Promocion> findByIdConCompras(@Param("id") Long id);
+
+    @Query("SELECT DISTINCT p FROM Promocion p LEFT JOIN FETCH p.compras WHERE p.codigo = :codigo")
+    Optional<Promocion> findByCodigoConCompras(@Param("codigo") String codigo);
+
     List<Promocion> findByBancoId(Long bancoId);
     
     // Obtener promociones disponibles de un local entre dos fechas

@@ -1,6 +1,7 @@
 package com.dbd.service.pagos_tarjetas.rest.response;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record TitularTarjetaResponse(
         Long id,
@@ -10,5 +11,5 @@ public record TitularTarjetaResponse(
         String direccion,
         String telefono,
         LocalDate fechaAlta,
-        BancoResponse banco
+        List<BancoResponse> bancos
 ) {}
