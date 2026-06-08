@@ -5,12 +5,11 @@ import com.dbd.service.pagos_tarjetas.repository.BancoRepository;
 import com.dbd.service.pagos_tarjetas.repository.TitularTarjetaRepository;
 import com.dbd.service.pagos_tarjetas.service.IBancoService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
+import com.dbd.service.pagos_tarjetas.model.Compra;
+import com.dbd.service.pagos_tarjetas.model.TitularTarjeta;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,55 +61,38 @@ public class BancoServiceImpl implements IBancoService {
     // Obtener el banco con mayor cantidad de compras realizadas con sus tarjetas
     @Override
     public Banco obtenerBancoConMasCompras() {
+        List<Compra> compras = mongoTemplate.findAll(Compra.class);
 
-        Aggregation aggregation = Aggregation.newAggregation(
-                // Desde la colección de compras
-                Aggregation.lookup("tarjetas", "tarjeta.$id", "_id", "tarjeta_info"),
-                Aggregation.unwind("tarjeta_info", true),
+        Map<String, Long> comprasPorBanco = new HashMap<>();
+        for (Compra compra : compras) {
+            if (compra.getTarjeta() != null && compra.getTarjeta().getBanco() != null) {
+                String bancoId = compra.getTarjeta().getBanco().getId();
+                comprasPorBanco.merge(bancoId, 1L, Long::sum);
+            }
+        }
 
-                // Unir con bancos
-                Aggregation.lookup("bancos", "tarjeta_info.banco.$id", "_id", "banco_info"),
-                Aggregation.unwind("banco_info", true),
-
-                // Filtrar documentos sin tarjeta o banco
-                Aggregation.match(Criteria.where("banco_info").exists(true)),
-
-                // Agrupar por banco y contar compras
-                Aggregation.group("banco_info._id")
-                        .count().as("cantidadCompras"),
-
-                // Ordenar por cantidad de compras descendente
-                Aggregation.sort(Sort.Direction.DESC, "cantidadCompras"),
-
-                // Tomar solo el primero
-                Aggregation.limit(1)
-        );
-
-        AggregationResults<Map> results = mongoTemplate.aggregate(
-                aggregation, "compras", Map.class
-        );
-
-        if (results.getMappedResults().isEmpty()) {
+        if (comprasPorBanco.isEmpty()) {
             throw new RuntimeException("No se encontraron bancos con compras");
         }
 
-        // Extraer el ID del banco del resultado
-        Map result = results.getMappedResults().get(0);
-        String bancoId = result.get("_id").toString();
-
-        // Obtener el banco completo por ID
-        return bancoRepository.findById(bancoId)
-                .orElseThrow(() -> new RuntimeException("Banco no encontrado con id: " + bancoId));
+        String topBancoId = Collections.max(comprasPorBanco.entrySet(),
+                Map.Entry.comparingByValue()).getKey();
+        return bancoRepository.findById(topBancoId)
+                .orElseThrow(() -> new RuntimeException("Banco no encontrado con id: " + topBancoId));
     }
 
     // Obtener el número de clientes de cada banco
     @Override
     public Map<String, Long> obtenerNumeroClientesPorBanco() {
         List<Banco> bancos = bancoRepository.findAll();
+        List<TitularTarjeta> todosTitulares = titularTarjetaRepository.findAll();
         Map<String, Long> clientesPorBanco = new HashMap<>();
 
         for (Banco banco : bancos) {
-            long cantidadClientes = titularTarjetaRepository.findByBancoId(banco.getId()).size();
+            long cantidadClientes = todosTitulares.stream()
+                    .filter(t -> t.getBancos() != null && t.getBancos().stream()
+                            .anyMatch(b -> b.getId().equals(banco.getId())))
+                    .count();
             clientesPorBanco.put(banco.getNombre(), cantidadClientes);
         }
 

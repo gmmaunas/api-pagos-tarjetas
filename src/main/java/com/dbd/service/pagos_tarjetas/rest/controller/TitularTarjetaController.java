@@ -28,8 +28,10 @@ public class TitularTarjetaController {
 
     @PostMapping
     public ResponseEntity<TitularTarjetaResponse> crearTitular(@Valid @RequestBody TitularTarjetaRequest request) {
-        Banco banco = bancoService.obtenerBancoPorId(request.bancoId());
-        TitularTarjeta titular = TitularTarjetaMapper.toEntity(request, banco);
+        List<Banco> bancos = request.bancoIds().stream()
+                .map(bancoService::obtenerBancoPorId)
+                .collect(Collectors.toList());
+        TitularTarjeta titular = TitularTarjetaMapper.toEntity(request, bancos);
         TitularTarjeta nuevoTitular = titularTarjetaService.crearTitular(titular);
         return new ResponseEntity<>(TitularTarjetaMapper.toResponse(nuevoTitular), HttpStatus.CREATED);
     }
@@ -75,8 +77,10 @@ public class TitularTarjetaController {
             @PathVariable String id,
             @Valid @RequestBody TitularTarjetaRequest request) {
         TitularTarjeta titular = titularTarjetaService.obtenerTitularPorId(id);
-        Banco banco = bancoService.obtenerBancoPorId(request.bancoId());
-        TitularTarjetaMapper.updateEntityFromRequest(titular, request, banco);
+        List<Banco> bancos = request.bancoIds().stream()
+                .map(bancoService::obtenerBancoPorId)
+                .collect(Collectors.toList());
+        TitularTarjetaMapper.updateEntityFromRequest(titular, request, bancos);
         TitularTarjeta titularActualizado = titularTarjetaService.actualizarTitular(id, titular);
         return ResponseEntity.ok(TitularTarjetaMapper.toResponse(titularActualizado));
     }

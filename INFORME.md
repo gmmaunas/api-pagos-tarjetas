@@ -11,8 +11,7 @@
 ### 1.1 Relaciones: Referencias vs Embebido
 
 **Referencias (@DBRef):**
-- **Banco ↔ TitularTarjeta:** Referencia (normalización)
-- **TitularTarjeta → Banco:** Referencia unidireccional
+- **Banco ↔ TitularTarjeta:** Referencia bidireccional ManyToMany (`TitularTarjeta` almacena `List<Banco>`)
 - **Tarjeta → TitularTarjeta, Banco:** Referencias
 - **Compra → Tarjeta, Promociones:** Referencias
 - **Promocion → Banco:** Referencia
@@ -44,7 +43,7 @@ MongoDB NO soporta cascadas automáticas como JPA.
 
 **Estrategia implementada:**
 - **Eliminación manual:** Al eliminar una entidad padre, se debe decidir explícitamente qué hacer con las referencias
-- **Integridad histórica:** Las compras mantienen referencias a promociones eliminadas (datos históricos)
+- **Desvinculación activa:** Al eliminar una promoción, se recorren todas las compras que la referencian y se elimina la referencia antes del delete, evitando DBRefs huérfanos
 
 ---
 

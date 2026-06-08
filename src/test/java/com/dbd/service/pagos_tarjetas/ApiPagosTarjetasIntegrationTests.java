@@ -79,7 +79,7 @@ class ApiPagosTarjetasIntegrationTests {
                 "Calle Test 456",
                 "011-8765-4321",
                 LocalDate.now(),
-                bancoId
+                List.of(bancoId)
         );
         ResponseEntity<TitularTarjetaResponse> titularResponse = restTemplate.postForEntity(
                 "/titulares",

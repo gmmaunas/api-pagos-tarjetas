@@ -1,8 +1,10 @@
 package com.dbd.service.pagos_tarjetas.service.impl;
 
+import com.dbd.service.pagos_tarjetas.model.Compra;
 import com.dbd.service.pagos_tarjetas.model.Descuento;
 import com.dbd.service.pagos_tarjetas.model.Financiacion;
 import com.dbd.service.pagos_tarjetas.model.Promocion;
+import com.dbd.service.pagos_tarjetas.repository.CompraRepository;
 import com.dbd.service.pagos_tarjetas.repository.DescuentoRepository;
 import com.dbd.service.pagos_tarjetas.repository.FinanciacionRepository;
 import com.dbd.service.pagos_tarjetas.repository.PromocionRepository;
@@ -19,6 +21,7 @@ public class PromocionServiceImpl implements IPromocionService {
     private final PromocionRepository promocionRepository;
     private final DescuentoRepository descuentoRepository;
     private final FinanciacionRepository financiacionRepository;
+    private final CompraRepository compraRepository;
 
     // Agregar una nueva promoción de tipo descuento a un banco dado
     @Override
@@ -68,12 +71,27 @@ public class PromocionServiceImpl implements IPromocionService {
     @Override
     public void eliminarPromocionPorCodigo(String codigo) {
         Promocion promocion = obtenerPromocionPorCodigo(codigo);
+        desvincularCompras(promocion.getId());
         promocionRepository.delete(promocion);
     }
 
     @Override
     public void eliminarPromocion(String id) {
+        desvincularCompras(id);
         promocionRepository.deleteById(id);
+    }
+
+    private void desvincularCompras(String promocionId) {
+        List<Compra> comprasConPromocion = compraRepository.findAll().stream()
+                .filter(c -> c.getPromocionesAplicadas() != null &&
+                        c.getPromocionesAplicadas().stream()
+                                .anyMatch(p -> p.getId().equals(promocionId)))
+                .toList();
+
+        for (Compra compra : comprasConPromocion) {
+            compra.getPromocionesAplicadas().removeIf(p -> p.getId().equals(promocionId));
+            compraRepository.save(compra);
+        }
     }
 
     @Override

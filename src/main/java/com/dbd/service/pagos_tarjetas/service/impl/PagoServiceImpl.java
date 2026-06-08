@@ -50,6 +50,7 @@ public class PagoServiceImpl implements IPagoService {
         for (CompraCuotas compra : comprasCuotas) {
             for (Cuota cuota : compra.getCuotas()) {
                 if (cuota.getMes().equals(mes) && cuota.getAnio().equals(anio) && cuota.getPagoId() == null) {
+                    cuota.setCompraId(compra.getId());
                     cuotasDelMes.add(cuota);
                 }
             }
@@ -66,7 +67,7 @@ public class PagoServiceImpl implements IPagoService {
 
         Query queryCompras = new Query();
         queryCompras.addCriteria(Criteria.where("fechaHora").gte(inicioMes).lte(finMes)
-                .and("pago").exists(false));
+                .and("pago").is(null));
 
         List<CompraPagoUnico> comprasPagoUnico = mongoTemplate.find(queryCompras, CompraPagoUnico.class);
 

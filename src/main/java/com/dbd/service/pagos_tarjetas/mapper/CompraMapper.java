@@ -150,7 +150,8 @@ public class CompraMapper {
                 cuota.getPrecio(),
                 cuota.getMes(),
                 cuota.getAnio(),
-                cuota.getPagoId()
+                cuota.getPagoId(),
+                cuota.getCompraId()
         );
     }
 }

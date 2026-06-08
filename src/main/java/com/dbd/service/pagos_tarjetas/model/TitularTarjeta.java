@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Document(collection = "titulares_tarjeta")
 @Getter
@@ -32,5 +34,6 @@ public class TitularTarjeta {
     private LocalDate fechaAlta;
 
     @DBRef
-    private Banco banco;
+    @Builder.Default
+    private List<Banco> bancos = new ArrayList<>();
 }

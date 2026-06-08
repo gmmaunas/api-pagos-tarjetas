@@ -3,6 +3,7 @@ package com.dbd.service.pagos_tarjetas.service;
 import com.dbd.service.pagos_tarjetas.model.Compra;
 import com.dbd.service.pagos_tarjetas.model.CompraCuotas;
 import com.dbd.service.pagos_tarjetas.model.CompraPagoUnico;
+import com.dbd.service.pagos_tarjetas.model.Promocion;
 import java.util.List;
 
 /**
@@ -56,6 +57,13 @@ public interface ICompraService {
      * @return Nombre del local
      */
     String obtenerLocalConMasCompras();
+
+    /**
+     * Obtiene las promociones aplicadas a una compra específica
+     * @param compraId ID de la compra
+     * @return Lista de promociones aplicadas
+     */
+    List<Promocion> obtenerPromocionesPorCompra(String compraId);
 
     /**
      * Elimina una compra por su ID

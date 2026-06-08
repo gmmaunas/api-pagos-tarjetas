@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -129,6 +130,14 @@ public class CompraServiceImpl implements ICompraService {
         }
 
         return results.getMappedResults().get(0).getString("_id");
+    }
+
+    @Override
+    public List<Promocion> obtenerPromocionesPorCompra(String compraId) {
+        Compra compra = obtenerCompraPorId(compraId);
+        return compra.getPromocionesAplicadas() != null
+                ? compra.getPromocionesAplicadas()
+                : new ArrayList<>();
     }
 
     public void eliminarCompra(String id) {

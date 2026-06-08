@@ -226,7 +226,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 
 ### 👤 Titulares (/dbd/v2/titulares)
 
-- `POST /titulares` - Crear un titular
+- `POST /titulares` - Crear un titular *(body: `bancoIds: ["id1", "id2"]` — soporta múltiples bancos)*
 - `GET /titulares` - Obtener todos los titulares
 - `GET /titulares/{id}` - Obtener titular por ID
 - `GET /titulares/cuit/{cuit}` - Obtener titular por CUIT
@@ -257,6 +257,7 @@ src/test/java/com/dbd/service/pagos_tarjetas/
 - `GET /compras/{id}/detalles` - Obtener compra con detalles completos
 - `GET /compras/tarjeta/{tarjetaId}` - Obtener compras por tarjeta
 - `GET /compras/local-mas-compras` - **Obtener local con mayor cantidad de compras**
+- `GET /compras/{id}/promociones` - **Obtener promociones aplicadas a una compra**
 - `DELETE /compras/{id}` - Eliminar compra
 
 ### 🎁 Promociones (/dbd/v2/promociones)

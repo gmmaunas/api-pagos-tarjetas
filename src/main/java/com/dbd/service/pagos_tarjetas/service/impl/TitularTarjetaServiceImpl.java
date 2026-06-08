@@ -4,14 +4,15 @@ import com.dbd.service.pagos_tarjetas.model.TitularTarjeta;
 import com.dbd.service.pagos_tarjetas.repository.TitularTarjetaRepository;
 import com.dbd.service.pagos_tarjetas.service.ITitularTarjetaService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Service;
+import com.dbd.service.pagos_tarjetas.model.Compra;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +50,10 @@ public class TitularTarjetaServiceImpl implements ITitularTarjetaService {
 
     @Override
     public List<TitularTarjeta> obtenerTitularesPorBanco(String bancoId) {
-        return titularTarjetaRepository.findByBancoId(bancoId);
+        return titularTarjetaRepository.findAll().stream()
+                .filter(t -> t.getBancos() != null && t.getBancos().stream()
+                        .anyMatch(b -> b.getId().equals(bancoId)))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -58,6 +62,9 @@ public class TitularTarjetaServiceImpl implements ITitularTarjetaService {
         titular.setNombreCompleto(titularActualizado.getNombreCompleto());
         titular.setDireccion(titularActualizado.getDireccion());
         titular.setTelefono(titularActualizado.getTelefono());
+        if (titularActualizado.getBancos() != null) {
+            titular.setBancos(new ArrayList<>(titularActualizado.getBancos()));
+        }
         return titularTarjetaRepository.save(titular);
     }
 
@@ -70,38 +77,25 @@ public class TitularTarjetaServiceImpl implements ITitularTarjetaService {
     @Override
     public Map<String, Double> obtenerTopNTitularesConMayorMontoCompras(int limite) {
 
-        Aggregation aggregation = Aggregation.newAggregation(
-                // Desde la colección de compras
-                Aggregation.lookup("tarjetas", "tarjeta.$id", "_id", "tarjeta_info"),
-                Aggregation.unwind("tarjeta_info"),
+        List<Compra> compras = mongoTemplate.findAll(Compra.class);
+        Map<String, Double> montosPorTitular = new HashMap<>();
 
-                // Unir con titulares
-                Aggregation.lookup("titulares_tarjeta", "tarjeta_info.titularTarjeta.$id", "_id", "titular_info"),
-                Aggregation.unwind("titular_info"),
-
-                // Agrupar por titular y sumar montos finales
-                Aggregation.group("titular_info.nombreCompleto")
-                        .sum("montoFinal").as("montoTotal"),
-
-                // Ordenar por monto total descendente
-                Aggregation.sort(Sort.Direction.DESC, "montoTotal"),
-
-                // Limitar resultados
-                Aggregation.limit(limite)
-        );
-
-        AggregationResults<Map> results = mongoTemplate.aggregate(
-                aggregation, "compras", Map.class
-        );
-
-        // Convertir resultados a Map<String, Double>
-        Map<String, Double> topTitulares = new LinkedHashMap<>();
-        for (Map result : results.getMappedResults()) {
-            String nombreTitular = (String) result.get("_id");
-            Number montoTotal = (Number) result.get("montoTotal");
-            topTitulares.put(nombreTitular, montoTotal.doubleValue());
+        for (Compra compra : compras) {
+            if (compra.getTarjeta() != null && compra.getTarjeta().getTitularTarjeta() != null) {
+                String nombre = compra.getTarjeta().getTitularTarjeta().getNombreCompleto();
+                Double montoFinal = compra.getMontoFinal() != null ? compra.getMontoFinal() : 0.0;
+                montosPorTitular.merge(nombre, montoFinal, Double::sum);
+            }
         }
 
-        return topTitulares;
+        return montosPorTitular.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(limite)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
     }
 }

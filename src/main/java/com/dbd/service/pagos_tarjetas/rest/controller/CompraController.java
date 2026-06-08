@@ -4,9 +4,11 @@ import com.dbd.service.pagos_tarjetas.mapper.CompraMapper;
 import com.dbd.service.pagos_tarjetas.model.*;
 import com.dbd.service.pagos_tarjetas.rest.request.CompraCuotasRequest;
 import com.dbd.service.pagos_tarjetas.rest.request.CompraPagoUnicoRequest;
+import com.dbd.service.pagos_tarjetas.mapper.PromocionMapper;
 import com.dbd.service.pagos_tarjetas.rest.response.CompraResponse;
 import com.dbd.service.pagos_tarjetas.rest.response.CompraCuotasResponse;
 import com.dbd.service.pagos_tarjetas.rest.response.CompraPagoUnicoResponse;
+import com.dbd.service.pagos_tarjetas.rest.response.PromocionResponse;
 import com.dbd.service.pagos_tarjetas.service.ICompraService;
 import com.dbd.service.pagos_tarjetas.service.IPromocionService;
 import com.dbd.service.pagos_tarjetas.service.ITarjetaService;
@@ -103,6 +105,15 @@ public class CompraController {
     public ResponseEntity<String> obtenerLocalConMasCompras() {
         String local = compraService.obtenerLocalConMasCompras();
         return ResponseEntity.ok(local);
+    }
+
+    @GetMapping("/{id}/promociones")
+    public ResponseEntity<List<PromocionResponse>> obtenerPromocionesPorCompra(@PathVariable String id) {
+        List<Promocion> promociones = compraService.obtenerPromocionesPorCompra(id);
+        List<PromocionResponse> response = promociones.stream()
+                .map(PromocionMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
