@@ -633,4 +633,123 @@ class ApiPagosTarjetasIntegrationTests {
             );
         }
     }
+
+    /**
+     * Test Corrección 1: Cálculo correcto de compra en cuotas con descuento del banco.
+     * Bug: el descuento se interpretaba como tasa de interés (20% → 2000% interés).
+     * Fix: el descuento reduce el monto final, no lo multiplica.
+     */
+    @Test
+    @Order(17)
+    @DisplayName("Corrección 1. Descuento banco en cuotas reduce el monto final (no como interés)")
+    void testCalculoCorrectoDescuentoEnCuotas() {
+        // Crear descuento del 20% para una tienda específica
+        DescuentoRequest promoRequest = new DescuentoRequest(
+                "DESC-CORR1-CUOTAS",
+                "Descuento 20% Cuotas Correccion1",
+                "Tienda Correccion1",
+                "30-CORR1CORR1-1",
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusMonths(6),
+                null,
+                bancoId,
+                20.0,
+                null,
+                false // no soloContado → aplica a cuotas
+        );
+        ResponseEntity<DescuentoResponse> promoResp = restTemplate.postForEntity(
+                "/promociones/descuento", promoRequest, DescuentoResponse.class);
+        assertThat(promoResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Crear compra en 6 cuotas, sin interés propio, monto = 10000
+        // montoFinal esperado: 10000 * (1 + 0/100) - 10000 * (20/100) = 10000 - 2000 = 8000
+        CompraCuotasRequest compraRequest = new CompraCuotasRequest(
+                "VOUCHER-CORR1-001",
+                "Tienda Correccion1",
+                "30-CORR1CORR1-1",
+                10000.0,
+                LocalDate.now().atStartOfDay(),
+                tarjetaId,
+                0.0,
+                6,
+                List.of()
+        );
+        ResponseEntity<CompraCuotasResponse> response = restTemplate.postForEntity(
+                "/compras/cuotas", compraRequest, CompraCuotasResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+
+        Double montoFinal = response.getBody().montoFinal();
+        assertThat(montoFinal)
+                .as("montoFinal debe ser MENOR al monto original (descuento aplicado), no mayor")
+                .isLessThan(10000.0);
+        assertThat(montoFinal)
+                .as("montoFinal esperado: 10000 - 20%% = 8000")
+                .isEqualTo(8000.0);
+        assertThat(response.getBody().promocionAplicada())
+                .as("Debe tener exactamente UNA promoción aplicada asignada")
+                .isNotNull();
+    }
+
+    /**
+     * Test Corrección 2: Una compra tiene como máximo UNA promoción (modelo 0..1).
+     * Verifica que el campo promocionAplicada es un objeto único, no una lista.
+     */
+    @Test
+    @Order(18)
+    @DisplayName("Corrección 2. Una compra tiene como máximo una promoción (modelo 0..1)")
+    void testUnaPromocionPorCompra() {
+        // Crear compra pago único en tienda con descuento activo del setup
+        CompraPagoUnicoRequest compraRequest = new CompraPagoUnicoRequest(
+                "VOUCHER-CORR2-001",
+                "Tienda Test",
+                "30-11111111-1",
+                5000.0,
+                LocalDate.now().atStartOfDay(),
+                tarjetaId,
+                0.0,
+                List.of()
+        );
+        ResponseEntity<CompraPagoUnicoResponse> response = restTemplate.postForEntity(
+                "/compras/pago-unico", compraRequest, CompraPagoUnicoResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        // promocionAplicada es un campo único (PromocionResponse), no una lista
+        // Si hay promoción del banco para esa tienda, viene como objeto único; si no, es null
+        // El modelo 0..1 es correcto en cualquiera de los dos casos
+        PromocionResponse promocionAplicada = response.getBody().promocionAplicada();
+        if (promocionAplicada != null) {
+            assertThat(promocionAplicada.codigo()).isNotBlank();
+            assertThat(response.getBody().montoFinal())
+                    .as("Con promoción, montoFinal debe ser <= monto original")
+                    .isLessThanOrEqualTo(5000.0);
+        }
+    }
+
+    /**
+     * Test Corrección 3: Listar compras no lanza LazyInitializationException.
+     * Fix: se usa JOIN FETCH para cargar tarjeta y promocionAplicada dentro de la transacción.
+     */
+    @Test
+    @Order(19)
+    @DisplayName("Corrección 3. Listar todas las compras no falla por lazy loading fuera de transacción")
+    void testListarComprasSinLazyInitializationException() {
+        ResponseEntity<List<CompraResponse>> response = restTemplate.exchange(
+                "/compras",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<CompraResponse>>() {}
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isNotEmpty();
+
+        response.getBody().forEach(compra -> {
+            assertThat(compra.tarjetaId()).isNotNull();
+            assertThat(compra.montoFinal()).isNotNull();
+        });
+    }
 }

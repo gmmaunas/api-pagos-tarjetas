@@ -45,7 +45,7 @@ public abstract class Promocion {
     @JoinColumn(name = "banco_id", nullable = false)
     private Banco banco;
     
-    @ManyToMany(mappedBy = "promocionesAplicadas", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "promocionAplicada", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Compra> compras = new ArrayList<>();
     
@@ -55,7 +55,21 @@ public abstract class Promocion {
 
     public abstract String getTipo();
 
+    // Devuelve el descuento aplicado al pago único (0.0 si no aplica)
     public abstract Double aplicarAPagoUnico(CompraPagoUnico compra, Double montoActual);
 
-    public abstract Double aplicarACuotas(CompraCuotas compra);
+    // Devuelve el interés de reemplazo para cuotas (null = no reemplaza el interés base)
+    public abstract Double calcularInteresParaCuotas(CompraCuotas compra);
+
+    // Devuelve el importe de descuento a restar en cuotas (0.0 si no aplica)
+    public abstract Double calcularDescuentoParaCuotas(CompraCuotas compra);
+
+    // Indica si esta promoción es candidata para una compra en pago único
+    public abstract boolean seAplicaAPagoUnico();
+
+    // Indica si esta promoción es la financiación preferida para el número de cuotas dado
+    public abstract boolean seAplicaACuotasConNumero(int numeroCuotas);
+
+    // Indica si esta promoción aplica como descuento genérico a cuotas
+    public abstract boolean seAplicaACuotasComoDescuento();
 }

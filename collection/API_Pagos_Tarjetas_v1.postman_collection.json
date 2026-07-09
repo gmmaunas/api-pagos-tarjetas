@@ -408,14 +408,14 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/promociones/codigo/{{codigoPromo}}",
+							"raw": "{{baseUrl}}/promociones/codigo/{{promocionCodigo}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"promociones",
 								"codigo",
-								"{{codigoPromo}}"
+								"{{promocionCodigo}}"
 							]
 						}
 					},
@@ -454,7 +454,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-001\",\n    \"tienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"monto\": 10000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"descuentoTienda\": 10.0,\n    \"codigosPromociones\": [\n        \"DESC2025\"\n    ]\n}"
+							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-001\",\n    \"tienda\": \"Falabella\",\n    \"cuitTienda\": \"30-12345678-9\",\n    \"monto\": 10000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"descuentoTienda\": 10.0\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/compras/pago-unico",
@@ -481,7 +481,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-002\",\n    \"tienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"monto\": 50000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"interes\": 15.0,\n    \"numeroCuotas\": 12,\n    \"codigosPromociones\": [\n        \"FIN12CUOTAS\"\n    ]\n}"
+							"raw": "{\n    \"comprobanteVoucher\": \"VOUCHER-002\",\n    \"tienda\": \"Garbarino\",\n    \"cuitTienda\": \"30-98765432-1\",\n    \"monto\": 50000.00,\n    \"fechaHora\": \"2025-10-15T15:00:00\",\n    \"tarjetaId\": {{tarjetaId}},\n    \"interes\": 15.0,\n    \"numeroCuotas\": 12\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/compras/cuotas",
@@ -664,7 +664,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"codigo\": \"TEST-DESC\",\n    \"tituloPromocion\": \"Test Descuento\",\n    \"nombreTienda\": \"Test Store\",\n    \"cuitTienda\": \"30-11111111-1\",\n    \"fechaInicioValidez\": \"2025-11-01\",\n    \"fechaFinValidez\": \"2025-11-30\",\n    \"bancoId\": {{bancoId}},\n    \"porcentajeDescuento\": 15.0,\n    \"tope\": 30000.0,\n    \"soloContado\": false\n}"
+							"raw": "{\n    \"codigo\": \"DESC2025\",\n    \"tituloPromocion\": \"Test Descuento\",\n    \"nombreTienda\": \"Test Store\",\n    \"cuitTienda\": \"30-11111111-1\",\n    \"fechaInicioValidez\": \"2025-11-01\",\n    \"fechaFinValidez\": \"2025-11-30\",\n    \"bancoId\": {{bancoId}},\n    \"porcentajeDescuento\": 15.0,\n    \"tope\": 30000.0,\n    \"soloContado\": false\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/promociones/descuento",
@@ -784,14 +784,14 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/promociones/codigo/{{codigoPromo}}",
+							"raw": "{{baseUrl}}/promociones/codigo/{{promocionCodigo}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"promociones",
 								"codigo",
-								"{{codigoPromo}}"
+								"{{promocionCodigo}}"
 							]
 						}
 					},

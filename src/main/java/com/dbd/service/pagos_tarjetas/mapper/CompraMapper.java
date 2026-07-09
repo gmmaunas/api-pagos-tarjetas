@@ -6,7 +6,6 @@ import com.dbd.service.pagos_tarjetas.rest.request.CompraPagoUnicoRequest;
 import com.dbd.service.pagos_tarjetas.rest.response.*;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class CompraMapper {
@@ -16,12 +15,12 @@ public class CompraMapper {
     }
 
     // CompraPagoUnico
-    public static CompraPagoUnico toEntity(CompraPagoUnicoRequest request, Tarjeta tarjeta, List<Promocion> promociones) {
+    public static CompraPagoUnico toEntity(CompraPagoUnicoRequest request, Tarjeta tarjeta) {
         if (request == null) {
             return null;
         }
 
-        CompraPagoUnico compra = CompraPagoUnico.builder()
+        return CompraPagoUnico.builder()
                 .comprobanteVoucher(request.comprobanteVoucher())
                 .tienda(request.tienda())
                 .cuitTienda(request.cuitTienda())
@@ -29,11 +28,7 @@ public class CompraMapper {
                 .fechaHora(request.fechaHora())
                 .tarjeta(tarjeta)
                 .descuentoTienda(request.descuentoTienda() != null ? request.descuentoTienda() : 0.0)
-                .promocionesAplicadas(promociones != null ? promociones : new ArrayList<>())
                 .build();
-
-        compra.calcularMontoFinal();
-        return compra;
     }
 
     public static CompraPagoUnicoResponse toPagoUnicoResponse(CompraPagoUnico compra) {
@@ -53,21 +48,17 @@ public class CompraMapper {
                 compra.getTarjeta() != null ? compra.getTarjeta().getNumero() : null,
                 compra.getDescuentoTienda(),
                 compra.getPago() != null ? compra.getPago().getId() : null,
-                compra.getPromocionesAplicadas() != null
-                        ? compra.getPromocionesAplicadas().stream()
-                        .map(PromocionMapper::toResponse)
-                        .collect(Collectors.toList())
-                        : new ArrayList<>()
+                PromocionMapper.toResponse(compra.getPromocionAplicada())
         );
     }
 
     // CompraCuotas
-    public static CompraCuotas toEntity(CompraCuotasRequest request, Tarjeta tarjeta, List<Promocion> promociones) {
+    public static CompraCuotas toEntity(CompraCuotasRequest request, Tarjeta tarjeta) {
         if (request == null) {
             return null;
         }
 
-        CompraCuotas compra = CompraCuotas.builder()
+        return CompraCuotas.builder()
                 .comprobanteVoucher(request.comprobanteVoucher())
                 .tienda(request.tienda())
                 .cuitTienda(request.cuitTienda())
@@ -76,12 +67,7 @@ public class CompraMapper {
                 .tarjeta(tarjeta)
                 .interes(request.interes() != null ? request.interes() : 0.0)
                 .numeroCuotas(request.numeroCuotas())
-                .promocionesAplicadas(promociones != null ? promociones : new ArrayList<>())
                 .build();
-
-        compra.calcularMontoFinal();
-        compra.generarCuotas();
-        return compra;
     }
 
     public static CompraCuotasResponse toCuotasResponse(CompraCuotas compra) {
@@ -106,11 +92,7 @@ public class CompraMapper {
                         .map(CompraMapper::toCuotaResponse)
                         .collect(Collectors.toList())
                         : new ArrayList<>(),
-                compra.getPromocionesAplicadas() != null
-                        ? compra.getPromocionesAplicadas().stream()
-                        .map(PromocionMapper::toResponse)
-                        .collect(Collectors.toList())
-                        : new ArrayList<>()
+                PromocionMapper.toResponse(compra.getPromocionAplicada())
         );
     }
 
@@ -131,11 +113,7 @@ public class CompraMapper {
                 compra.getFechaHora(),
                 compra.getTarjeta() != null ? compra.getTarjeta().getId() : null,
                 compra.getTarjeta() != null ? compra.getTarjeta().getNumero() : null,
-                compra.getPromocionesAplicadas() != null
-                        ? compra.getPromocionesAplicadas().stream()
-                        .map(PromocionMapper::toResponse)
-                        .collect(Collectors.toList())
-                        : new ArrayList<>()
+                PromocionMapper.toResponse(compra.getPromocionAplicada())
         );
     }
 

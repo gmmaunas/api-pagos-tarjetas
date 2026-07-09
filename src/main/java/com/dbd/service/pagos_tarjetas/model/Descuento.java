@@ -30,30 +30,41 @@ public class Descuento extends Promocion {
     @Override
     public Double aplicarAPagoUnico(CompraPagoUnico compra, Double montoActual) {
         Double descuentoAplicado = montoActual * (porcentajeDescuento / 100);
-
         if (tope != null && descuentoAplicado > tope) {
             descuentoAplicado = tope;
         }
-
         return descuentoAplicado;
     }
 
     @Override
-    public Double aplicarACuotas(CompraCuotas compra) {
-        // Si el descuento es solo para contado, no aplica a cuotas
+    public Double calcularInteresParaCuotas(CompraCuotas compra) {
+        return null; // Un descuento no reemplaza el interés base
+    }
+
+    @Override
+    public Double calcularDescuentoParaCuotas(CompraCuotas compra) {
         if (soloContado) {
             return 0.0;
         }
-
-        // Calcular el descuento sobre el monto base
-        Double montoBase = compra.getMonto();
-        Double descuentoAplicado = montoBase * (porcentajeDescuento / 100);
-
-        // Aplicar tope si existe
+        Double descuentoAplicado = compra.getMonto() * (porcentajeDescuento / 100);
         if (tope != null && descuentoAplicado > tope) {
             descuentoAplicado = tope;
         }
-
         return descuentoAplicado;
+    }
+
+    @Override
+    public boolean seAplicaAPagoUnico() {
+        return true;
+    }
+
+    @Override
+    public boolean seAplicaACuotasConNumero(int numeroCuotas) {
+        return false; // Un descuento no es financiación
+    }
+
+    @Override
+    public boolean seAplicaACuotasComoDescuento() {
+        return !soloContado;
     }
 }

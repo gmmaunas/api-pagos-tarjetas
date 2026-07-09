@@ -24,57 +24,45 @@ public class CompraServiceImpl implements ICompraService {
     // Crear compra en un solo pago
     @Override
     public CompraPagoUnico crearCompraPagoUnico(CompraPagoUnico compra) {
-        // Aplicar promociones válidas
-        aplicarPromocionesACompra(compra);
-        
-        // Calcular monto final
+        List<Promocion> candidatas = obtenerPromocionesCandiatas(compra);
+        Promocion seleccionada = candidatas.stream()
+                .filter(Promocion::seAplicaAPagoUnico)
+                .findFirst()
+                .orElse(null);
+        compra.setPromocionAplicada(seleccionada);
         compra.calcularMontoFinal();
-        
         return compraPagoUnicoRepository.save(compra);
     }
     
     // Crear compra en cuotas
     @Override
     public CompraCuotas crearCompraCuotas(CompraCuotas compra) {
-        // Aplicar promociones válidas
-        aplicarPromocionesACompra(compra);
-        
-        // Calcular monto final
+        List<Promocion> candidatas = obtenerPromocionesCandiatas(compra);
+        // Preferir financiación con mismo número de cuotas; si no, descuento genérico
+        Promocion seleccionada = candidatas.stream()
+                .filter(p -> p.seAplicaACuotasConNumero(compra.getNumeroCuotas()))
+                .findFirst()
+                .or(() -> candidatas.stream()
+                        .filter(Promocion::seAplicaACuotasComoDescuento)
+                        .findFirst())
+                .orElse(null);
+        compra.setPromocionAplicada(seleccionada);
         compra.calcularMontoFinal();
-        
-        // Generar cuotas
         compra.generarCuotas();
-        
         return compraCuotasRepository.save(compra);
     }
 
-    // Aplicar promociones válidas a una compra
-    private void aplicarPromocionesACompra(Compra compra) {
+    // Obtener las promociones candidatas para la compra (mismo banco, tienda y fecha vigente)
+    private List<Promocion> obtenerPromocionesCandiatas(Compra compra) {
         Tarjeta tarjeta = tarjetaRepository.findById(compra.getTarjeta().getId())
                 .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada"));
-
         Long bancoId = tarjeta.getBanco().getId();
-        String cuitTienda = compra.getCuitTienda();
         LocalDate fechaCompra = compra.getFechaHora().toLocalDate();
-
-        // Obtener promociones válidas del banco para la tienda y fecha
-        List<Promocion> promocionesValidas = promocionRepository
-                .findPromocionesValidasPorTiendaYFecha(cuitTienda, fechaCompra)
+        return promocionRepository
+                .findPromocionesValidasPorTiendaYFecha(compra.getCuitTienda(), fechaCompra)
                 .stream()
                 .filter(p -> p.getBanco().getId().equals(bancoId))
                 .toList();
-
-        // Obtener IDs de promociones ya aplicadas
-        List<Long> promocionesYaAplicadas = compra.getPromocionesAplicadas().stream()
-                .map(Promocion::getId)
-                .toList();
-
-        // Agregar solo las promociones que no están ya aplicadas
-        List<Promocion> promocionesNuevas = promocionesValidas.stream()
-                .filter(p -> !promocionesYaAplicadas.contains(p.getId()))
-                .toList();
-
-        compra.getPromocionesAplicadas().addAll(promocionesNuevas);
     }
 
     // Obtener información de una compra con sus detalles
@@ -99,12 +87,12 @@ public class CompraServiceImpl implements ICompraService {
 
     @Override
     public List<Compra> obtenerTodasLasCompras() {
-        return compraRepository.findAll();
+        return compraRepository.findAllConDetalles();
     }
 
     @Override
     public List<Compra> obtenerComprasPorTarjeta(Long tarjetaId) {
-        return compraRepository.findByTarjetaId(tarjetaId);
+        return compraRepository.findByTarjetaIdConDetalles(tarjetaId);
     }
     
     // Obtener el nombre del local con mayor cantidad de compras

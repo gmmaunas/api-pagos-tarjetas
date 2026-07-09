@@ -35,7 +35,7 @@ Optional<Pago> findByCodigoConCuotas(@Param("codigo") String codigo);
 ### 1.3 Operaciones en Cascada
 
 - **Pago → Cuotas:** `CascadeType.ALL` (las cuotas no existen sin un pago)
-- **Compra → Promociones:** `CascadeType.PERSIST`, `MERGE` (las promociones son independientes)
+- **Compra → Promocion:** Sin cascada — `promocionAplicada` es una referencia `@ManyToOne` (0..1), gestionada por el servicio
 - **Tarjeta → Compras:** Sin cascada (mantener historial de compras)
 
 ### 1.4 Embeber Objetos vs Referencias
@@ -98,26 +98,80 @@ mvn test
 
 ### 3.3 Eliminación de promoción con compras asociadas
 
-**Problema:** Al eliminar una promoción con `DELETE`, si existían registros en la tabla `compra_promocion` (relación ManyToMany con `Compra`), la base de datos lanzaba una violación de clave foránea, o los datos quedaban inconsistentes.
+**Problema:** Al eliminar una promoción con `DELETE`, si existían compras que la referenciaban como `promocionAplicada`, la base de datos lanzaba una violación de clave foránea (`promocion_id` FK en tabla `compras`).
 
-**Solución:** Antes del `delete`, se itera sobre las compras asociadas (`promocion.getCompras()`) y se llama a `compra.getPromocionesAplicadas().remove(promocion)` desde el lado propietario de la relación. Hibernate elimina la fila de `compra_promocion` dentro de la misma transacción, permitiendo luego el `DELETE` de la promoción sin errores.
+**Solución:** Antes del `delete`, se itera sobre `promocion.getCompras()` y se llama `compra.setPromocionAplicada(null)`. Hibernate actualiza la FK en `compras` dentro de la misma transacción, permitiendo luego el `DELETE` de la promoción sin errores.
+
+### 3.4 Cálculo de compra en cuotas con descuento (Corrección 1)
+
+**Problema:** En `CompraCuotas.calcularMontoFinal()`, al haber un `Descuento` como promoción, el porcentaje de descuento se usaba como tasa de interés. Ej.: un descuento del 20% producía `montoFinal = monto * (1 + 20/100)` en lugar de restar el descuento.
+
+**Solución:** Se delegó el cálculo a métodos polimórficos de `Promocion`, sin `instanceof`:
+- `calcularInteresParaCuotas(compra)`: `Financiacion` devuelve su tasa de reemplazo, `Descuento` devuelve `null`
+- `calcularDescuentoParaCuotas(compra)`: `Descuento` devuelve el importe a restar, `Financiacion` devuelve `0.0`
+
+```java
+Double interesPromocion = promo.calcularInteresParaCuotas(this);
+if (interesPromocion != null) interesAplicado = interesPromocion;
+descuentoTotal = promo.calcularDescuentoParaCuotas(this);
+setMontoFinal(getMonto() * (1 + interesAplicado / 100) - descuentoTotal);
+```
+
+### 3.5 Modelo 0..1 Compra ↔ Promoción (Corrección 2 + Corrección 3)
+
+**Problema:** El diagrama de clases especifica que una `Compra` puede tener 0 o 1 `Promoción`, pero la implementación usaba `@ManyToMany List<Promocion> promocionesAplicadas`, permitiendo acumulación ilimitada.
+
+**Solución:**
+- `Compra.java`: reemplazado por `@ManyToOne Promocion promocionAplicada` (FK `promocion_id` en tabla `compras`)
+- `Promocion.java`: relación inversa cambiada a `@OneToMany(mappedBy="promocionAplicada")`
+- `CompraServiceImpl`: métodos `crearCompraPagoUnico()` y `crearCompraCuotas()` eligen automáticamente la única promoción válida por banco + tienda + fecha
+- Responses: `promocionesAplicadas: List<>` reemplazado por `promocionAplicada: PromocionResponse` (campo único, puede ser null)
+
+### 3.6 Cálculo duplicado y lazy loading (Corrección 4)
+
+**Problema 1 — Cálculo duplicado:** `CompraMapper.toEntity()` llamaba a `calcularMontoFinal()` y `generarCuotas()`, pero `CompraServiceImpl` también los llamaba. Cada compra se calculaba dos veces.
+
+**Solución:** Se eliminó el cálculo del mapper. Únicamente el servicio realiza el cálculo.
+
+**Problema 2 — Lazy loading fuera de transacción:** `obtenerTodasLasCompras()` usaba `findAll()`, lo que causaba `LazyInitializationException` al serializar `tarjeta` y `promocionAplicada` fuera de la sesión de Hibernate.
+
+**Solución:** Se agregaron queries JPQL con `JOIN FETCH`:
+```java
+@Query("SELECT DISTINCT c FROM Compra c LEFT JOIN FETCH c.tarjeta LEFT JOIN FETCH c.promocionAplicada vp LEFT JOIN FETCH vp.banco")
+List<Compra> findAllConDetalles();
+```
 
 ## 4. Tests
 
-13 tests de integración implementados validando todas las funcionalidades requeridas.
+**20 tests** implementados (19 integración + 1 application) — todos pasando.
 
 **Archivo:** `ApiPagosTarjetasIntegrationTests.java`
 
+| # | Descripción | Verifica |
+|---|---|---|
+| 1-11 | Requerimientos funcionales del enunciado | Endpoints requeridos |
+| 12-13 | Extra: pagos y listados | Flujo completo |
+| G1 | TitularTarjeta pertenece a múltiples bancos | ManyToMany correcto |
+| G3 | Eliminar promoción no rompe compras | FK sin violación |
+| G2 | Cuotas en pago incluyen `compraId` | Identificación de origen |
+| Corrección 1 | Descuento en cuotas = importe deducido | Cálculo correcto |
+| Corrección 2 | Compra tiene UNA promoción | Modelo 0..1 |
+| Corrección 3 | Listar compras sin LazyInitializationException | JOIN FETCH |
+
 ## 5. Conclusión
 
-Implementación completa con:
+Implementación completa con todas las correcciones de revisión aplicadas:
 
-- ✅ Lazy loading optimizado
+- ✅ Lazy loading optimizado con `JOIN FETCH`
 - ✅ Cascadas según lógica de negocio
 - ✅ Transacciones para consistencia
-- ✅ Herencia normalizada
-- ✅ Modelo de datos corregido (ManyToMany Banco ↔ TitularTarjeta)
-- ✅ Pago mensual con ítems correctamente informados
-- ✅ Eliminación segura de promociones
+- ✅ Herencia normalizada (JOINED strategy)
+- ✅ ManyToMany Banco ↔ TitularTarjeta correctamente implementado
+- ✅ Pago mensual con ítems correctamente informados (`compraId` en cuotas)
+- ✅ Eliminación segura de promociones (`setPromocionAplicada(null)` antes del DELETE)
+- ✅ Modelo 0..1 Compra ↔ Promoción (`@ManyToOne promocionAplicada`)
+- ✅ Diseño OOP sin `instanceof`: polimorfismo puro en `Promocion` con `calcularInteresParaCuotas`, `calcularDescuentoParaCuotas` y predicados `seAplica*()`
+- ✅ Cálculo correcto de montos: Descuento resta, Financiación reemplaza tasa
+- ✅ Sin cálculo duplicado: solo el servicio calcula `montoFinal`
 
 **Repositorio:** https://github.com/gmmaunas/api-pagos-tarjetas

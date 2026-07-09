@@ -5,11 +5,9 @@ import com.dbd.service.pagos_tarjetas.model.Pago;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface PagoRepository extends JpaRepository<Pago, Long> {
 
     Optional<Pago> findByCodigo(String codigo);
@@ -44,8 +42,8 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     Optional<Pago> findByCodigoConCompras(@Param("codigo") String codigo);
 
     // Cargar promociones de las compras de un pago
-    @Query("SELECT DISTINCT c FROM CompraPagoUnico c " +
-            "LEFT JOIN FETCH c.promocionesAplicadas p " +
+    @Query("SELECT c FROM CompraPagoUnico c " +
+            "LEFT JOIN FETCH c.promocionAplicada p " +
             "LEFT JOIN FETCH p.banco " +
             "WHERE c.pago.codigo = :codigo")
     List<CompraPagoUnico> findComprasConPromocionesDelPago(@Param("codigo") String codigo);
@@ -61,8 +59,8 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     List<Pago> findAllConCompras();
 
     // Cargar promociones de todas las compras
-    @Query("SELECT DISTINCT c FROM CompraPagoUnico c " +
-            "LEFT JOIN FETCH c.promocionesAplicadas p " +
+    @Query("SELECT c FROM CompraPagoUnico c " +
+            "LEFT JOIN FETCH c.promocionAplicada p " +
             "LEFT JOIN FETCH p.banco")
     List<CompraPagoUnico> findAllComprasConPromociones();
 }

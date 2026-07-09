@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "compras")
@@ -43,14 +41,9 @@ public abstract class Compra {
     @JoinColumn(name = "tarjeta_id", nullable = false)
     private Tarjeta tarjeta;
     
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "compra_promocion",
-        joinColumns = @JoinColumn(name = "compra_id"),
-        inverseJoinColumns = @JoinColumn(name = "promocion_id")
-    )
-    @Builder.Default
-    private List<Promocion> promocionesAplicadas = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promocion_id")
+    private Promocion promocionAplicada;
 
     public abstract String getTipo();
 

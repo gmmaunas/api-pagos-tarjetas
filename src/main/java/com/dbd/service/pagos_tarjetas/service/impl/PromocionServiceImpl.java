@@ -75,7 +75,7 @@ public class PromocionServiceImpl implements IPromocionService {
             .orElseThrow(() -> new RuntimeException("Promoci\u00f3n no encontrada con c\u00f3digo: " + codigo));
 
         for (Compra compra : new ArrayList<>(promocion.getCompras())) {
-            compra.getPromocionesAplicadas().remove(promocion);
+            compra.setPromocionAplicada(null);
         }
 
         promocionRepository.delete(promocion);
@@ -87,7 +87,7 @@ public class PromocionServiceImpl implements IPromocionService {
             .orElseThrow(() -> new RuntimeException("Promoci\u00f3n no encontrada con id: " + id));
 
         for (Compra compra : new ArrayList<>(promocion.getCompras())) {
-            compra.getPromocionesAplicadas().remove(promocion);
+            compra.setPromocionAplicada(null);
         }
 
         promocionRepository.delete(promocion);

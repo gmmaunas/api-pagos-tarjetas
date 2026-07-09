@@ -1,7 +1,6 @@
 package com.dbd.service.pagos_tarjetas.rest.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record CompraResponse(
         Long id,
@@ -14,5 +13,5 @@ public record CompraResponse(
         LocalDateTime fechaHora,
         Long tarjetaId,
         String tarjetaNumero,
-        List<PromocionResponse> promocionesAplicadas
+        PromocionResponse promocionAplicada
 ) {}

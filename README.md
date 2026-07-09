@@ -366,8 +366,10 @@ curl -X GET "http://localhost:8080/dbd/v1/bancos/clientes-por-banco"
 
 ### 1. Gestión de Compras
 - ✅ Compras en **un solo pago** o en **cuotas**
-- ✅ Aplicación **automática** de promociones válidas al momento de la compra
-- ✅ Cálculo automático del monto final con descuentos e intereses
+- ✅ Selección **automática** de la **única** promoción válida (banco + tienda + fecha) — modelo 0..1
+  - Para cuotas: prefiere `Financiacion` con mismo número de cuotas; si no, `Descuento` no exclusivo de contado
+  - Para pago único: busca el `Descuento` disponible
+- ✅ Cálculo correcto del monto final: `Descuento` reduce el importe, `Financiacion` reemplaza la tasa de interés
 - ✅ Generación automática de cuotas con fechas de vencimiento
 - ✅ Validación de tarjetas activas y no vencidas
 
@@ -405,9 +407,10 @@ curl -X GET "http://localhost:8080/dbd/v1/bancos/clientes-por-banco"
 - Una **Compra** (abstracta) puede ser:
   - **CompraPagoUnico**: Se paga en el mes siguiente
   - **CompraCuotas**: Genera N cuotas mensuales
+- Una **Compra** tiene como máximo **una Promoción** (`@ManyToOne`, relación 0..1), seleccionada automáticamente al crear la compra según banco, tienda y fecha
 - Una **Promocion** (abstracta) puede ser:
-  - **Descuento**: Porcentaje de descuento con tope opcional
-  - **Financiacion**: Interés especial para N cuotas
+  - **Descuento**: Porcentaje de descuento con tope opcional (se aplica como importe deducido, nunca como tasa de interés)
+  - **Financiacion**: Interés especial para N cuotas (reemplaza el interés estándar)
 - Un **Pago** agrupa **Cuotas** y **ComprasPagoUnico** de un mes específico
 
 ## 🧪 Testing
@@ -430,6 +433,7 @@ mvn test -Dtest=ApiPagosTarjetasIntegrationTests
 
 Los tests de integración `ApiPagosTarjetasIntegrationTests` validan:
 
+**Requerimientos funcionales:**
 1. ✅ Agregar promoción de descuento
 2. ✅ Editar fechas de vencimiento de un pago
 3. ✅ Generar pago mensual con items (cuotas con `compraId` + compras al contado)
@@ -440,9 +444,19 @@ Los tests de integración `ApiPagosTarjetasIntegrationTests` validan:
 8. ✅ Obtener top 10 titulares con mayor monto
 9. ✅ Obtener local con más compras
 10. ✅ Obtener banco con más compras
-11. ✅ Obtener número de clientes por banco (usando tabla `banco_titular`)
+11. ✅ Obtener número de clientes por banco
 12. ✅ Obtener pago por código con items
 13. ✅ Obtener todos los pagos
+
+**Correcciones aplicadas (ronda de revisión):**
+14. ✅ G1 — Titular pertenece a múltiples bancos (ManyToMany)
+15. ✅ G3 — Eliminar promoción con compras asociadas no rompe la compra
+16. ✅ G2 — Cuotas en pago mensual incluyen `compraId`
+17. ✅ Corrección 1 — Descuento en cuotas reduce el monto final (no como tasa de interés)
+18. ✅ Corrección 2 — Una compra tiene como máximo UNA promoción (modelo 0..1)
+19. ✅ Corrección 3 — Listar compras no falla por lazy loading fuera de transacción
+
+**Total: 20 tests (19 integración + 1 application)** — todos pasando.
 
 ## 🔧 Características Técnicas
 
