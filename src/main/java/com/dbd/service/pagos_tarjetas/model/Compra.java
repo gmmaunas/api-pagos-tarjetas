@@ -6,8 +6,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Document(collection = "compras")
 @Getter
@@ -35,10 +33,8 @@ public abstract class Compra {
     @DBRef
     private Tarjeta tarjeta;
 
-    // Promociones embebidas (solo IDs o datos mínimos)
     @DBRef
-    @Builder.Default
-    private List<Promocion> promocionesAplicadas = new ArrayList<>();
+    private Promocion promocionAplicada;
 
     public abstract String getTipo();
 

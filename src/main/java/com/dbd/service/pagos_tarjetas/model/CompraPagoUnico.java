@@ -23,18 +23,17 @@ public class CompraPagoUnico extends Compra {
 
     @Override
     public void calcularMontoFinal() {
-        // Aplicar descuento de la tienda primero
         Double montoConDescuentoTienda = getMonto();
         if (descuentoTienda != null && descuentoTienda > 0) {
             montoConDescuentoTienda = getMonto() * (1 - descuentoTienda / 100);
         }
 
-        // Aplicar promociones del banco
-        Double descuentoTotal = 0.0;
-        for (Promocion promo : getPromocionesAplicadas()) {
-            descuentoTotal += promo.aplicarAPagoUnico(this, montoConDescuentoTienda);
+        Double descuento = 0.0;
+        Promocion promo = getPromocionAplicada();
+        if (promo != null) {
+            descuento = promo.aplicarAPagoUnico(this, montoConDescuentoTienda);
         }
 
-        setMontoFinal(montoConDescuentoTienda - descuentoTotal);
+        setMontoFinal(montoConDescuentoTienda - descuento);
     }
 }

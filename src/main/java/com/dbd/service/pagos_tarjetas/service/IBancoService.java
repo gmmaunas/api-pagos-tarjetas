@@ -1,6 +1,7 @@
 package com.dbd.service.pagos_tarjetas.service;
 
 import com.dbd.service.pagos_tarjetas.model.Banco;
+import com.dbd.service.pagos_tarjetas.model.TitularTarjeta;
 import java.util.List;
 import java.util.Map;
 
@@ -61,4 +62,11 @@ public interface IBancoService {
      * @return Mapa con nombre del banco y cantidad de clientes
      */
     Map<String, Long> obtenerNumeroClientesPorBanco();
+
+    /**
+     * Obtiene los titulares de tarjeta que pertenecen a un banco dado
+     * @param bancoId ID del banco
+     * @return Lista de titulares del banco
+     */
+    List<TitularTarjeta> obtenerTitularesPorBanco(String bancoId);
 }

@@ -26,12 +26,19 @@ public class Financiacion extends Promocion {
 
     @Override
     public Double aplicarACuotas(CompraCuotas compra) {
-        // Solo aplica si el número de cuotas coincide
-        if (!compra.getNumeroCuotas().equals(this.numeroCuotas)) {
-            return null; // No aplica esta financiación
-        }
+        return calcularInteresParaCuotas(compra);
+    }
 
-        // Retorna el interés de la financiación para reemplazar el interés base
+    @Override
+    public Double calcularInteresParaCuotas(CompraCuotas compra) {
+        if (!compra.getNumeroCuotas().equals(this.numeroCuotas)) {
+            return null;
+        }
         return this.interes;
+    }
+
+    @Override
+    public Double calcularDescuentoParaCuotas(CompraCuotas compra) {
+        return 0.0;
     }
 }

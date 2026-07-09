@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -38,11 +39,11 @@ public class PagoServiceImpl implements IPagoService {
             throw new IllegalArgumentException("Ya existe un pago para el mes " + mes + "/" + anio);
         });
 
-        // Obtener compras en cuotas del mes para extraer cuotas
+        // Obtener compras en cuotas del mes para extraer cuotas (elemMatch garantiza que
+        // las tres condiciones aplican a la misma cuota del array)
         Query queryCuotas = new Query();
-        queryCuotas.addCriteria(Criteria.where("cuotas.mes").is(mes)
-                .and("cuotas.anio").is(anio)
-                .and("cuotas.pagoId").exists(false));
+        queryCuotas.addCriteria(Criteria.where("cuotas").elemMatch(
+                Criteria.where("mes").is(mes).and("anio").is(anio).and("pagoId").is(null)));
 
         List<CompraCuotas> comprasCuotas = mongoTemplate.find(queryCuotas, CompraCuotas.class);
         List<Cuota> cuotasDelMes = new ArrayList<>();
@@ -122,7 +123,7 @@ public class PagoServiceImpl implements IPagoService {
     public Pago editarFechasVencimiento(String codigo, LocalDate nuevoPrimerVencimiento,
                                         LocalDate nuevoSegundoVencimiento) {
         Pago pago = pagoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado con código: " + codigo));
+                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado con código: " + codigo));
 
         pago.setPrimerVencimiento(nuevoPrimerVencimiento);
         pago.setSegundoVencimiento(nuevoSegundoVencimiento);
@@ -133,7 +134,7 @@ public class PagoServiceImpl implements IPagoService {
     @Override
     public Pago obtenerPagoPorCodigoConItems(String codigo) {
         Pago pago = pagoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado con código: " + codigo));
+                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado con código: " + codigo));
 
         // Cargar compras de pago único
         if (pago.getComprasPagoUnicoIds() != null && !pago.getComprasPagoUnicoIds().isEmpty()) {
@@ -147,7 +148,7 @@ public class PagoServiceImpl implements IPagoService {
     @Override
     public Pago obtenerPagoPorId(String id) {
         Pago pago = pagoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado con id: " + id));
+                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado con id: " + id));
 
         // Cargar compras de pago único
         if (pago.getComprasPagoUnicoIds() != null && !pago.getComprasPagoUnicoIds().isEmpty()) {
@@ -161,7 +162,7 @@ public class PagoServiceImpl implements IPagoService {
     @Override
     public Pago obtenerPagoPorCodigo(String codigo) {
         Pago pago = pagoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado con código: " + codigo));
+                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado con código: " + codigo));
 
         // Cargar compras de pago único
         if (pago.getComprasPagoUnicoIds() != null && !pago.getComprasPagoUnicoIds().isEmpty()) {
@@ -194,6 +195,34 @@ public class PagoServiceImpl implements IPagoService {
 
     @Override
     public void eliminarPago(String id) {
+        Pago pago = pagoRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado con id: " + id));
+
+        // Limpiar pagoId en las cuotas embebidas de CompraCuotas
+        List<CompraCuotas> comprasCuotas = compraCuotasRepository.findAll();
+        for (CompraCuotas compra : comprasCuotas) {
+            boolean actualizado = false;
+            for (Cuota cuota : compra.getCuotas()) {
+                if (id.equals(cuota.getPagoId())) {
+                    cuota.setPagoId(null);
+                    actualizado = true;
+                }
+            }
+            if (actualizado) {
+                compraCuotasRepository.save(compra);
+            }
+        }
+
+        // Limpiar referencia pago en CompraPagoUnico
+        if (pago.getComprasPagoUnicoIds() != null) {
+            for (String compraId : pago.getComprasPagoUnicoIds()) {
+                compraPagoUnicoRepository.findById(compraId).ifPresent(compra -> {
+                    compra.setPago(null);
+                    compraPagoUnicoRepository.save(compra);
+                });
+            }
+        }
+
         pagoRepository.deleteById(id);
     }
 }

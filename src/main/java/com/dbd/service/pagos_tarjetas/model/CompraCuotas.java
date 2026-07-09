@@ -27,29 +27,19 @@ public class CompraCuotas extends Compra {
 
     @Override
     public void calcularMontoFinal() {
-        // Interés base de la compra
         Double interesAplicado = interes;
         Double descuentoTotal = 0.0;
 
-        // Aplicar promociones usando Double Dispatch
-        for (Promocion promo : getPromocionesAplicadas()) {
-            // Cada promoción sabe cómo aplicarse a cuotas
-
-            // Si es financiación, puede reemplazar el interés
-            Double interesPromocion = promo.aplicarACuotas(this);
+        Promocion promo = getPromocionAplicada();
+        if (promo != null) {
+            Double interesPromocion = promo.calcularInteresParaCuotas(this);
             if (interesPromocion != null) {
                 interesAplicado = interesPromocion;
-                break; // Solo una financiación aplica
             }
-
-            // Si es descuento, acumular
-            descuentoTotal += (interesPromocion != null ? 0.0 : promo.aplicarACuotas(this));
+            descuentoTotal = promo.calcularDescuentoParaCuotas(this);
         }
 
-        // Calcular monto final con interés
-        Double montoConInteres = getMonto() * (1 + interesAplicado / 100);
-
-        setMontoFinal(montoConInteres - descuentoTotal);
+        setMontoFinal(getMonto() * (1 + interesAplicado / 100) - descuentoTotal);
     }
 
     public void generarCuotas() {

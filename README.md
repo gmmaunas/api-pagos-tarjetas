@@ -462,7 +462,15 @@ Los tests de integración `ApiPagosTarjetasIntegrationTests` validan:
 11. ✅ Obtener número de clientes por banco
 12. ✅ Obtener pago por código con items
 13. ✅ Obtener todos los pagos
-14. ✅ Crear compra en cuotas con promociones
+14. ✅ G1. TitularTarjeta pertenece a múltiples bancos (ManyToMany)
+15. ✅ G3. Eliminar promoción aplicada no rompe la compra
+16. ✅ G2. Las cuotas en el pago incluyen compraId
+17. ✅ Corrección 1. Descuento en cuotas reduce monto (no eleva como interés)
+18. ✅ Corrección 2. Modelo 0..1: compra tiene campo único promocionAplicada
+19. ✅ Corrección 3. GET /bancos/{id}/titulares (bidireccionalidad)
+20. ✅ Corrección 4. PUT /promociones/{id} actualiza la promoción
+21. ✅ Corrección 5. Eliminar Pago limpia referencias colgantes
+22. ✅ Corrección 6. Pago mensual filtra cuotas por mes/año con $elemMatch
 
 ## 🔧 Características Técnicas
 

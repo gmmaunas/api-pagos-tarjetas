@@ -1,9 +1,11 @@
 package com.dbd.service.pagos_tarjetas.rest.controller;
 
 import com.dbd.service.pagos_tarjetas.mapper.BancoMapper;
+import com.dbd.service.pagos_tarjetas.mapper.TitularTarjetaMapper;
 import com.dbd.service.pagos_tarjetas.model.Banco;
 import com.dbd.service.pagos_tarjetas.rest.request.BancoRequest;
 import com.dbd.service.pagos_tarjetas.rest.response.BancoResponse;
+import com.dbd.service.pagos_tarjetas.rest.response.TitularTarjetaResponse;
 import com.dbd.service.pagos_tarjetas.service.IBancoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -77,5 +79,13 @@ public class BancoController {
     public ResponseEntity<Map<String, Long>> obtenerNumeroClientesPorBanco() {
         Map<String, Long> clientesPorBanco = bancoService.obtenerNumeroClientesPorBanco();
         return ResponseEntity.ok(clientesPorBanco);
+    }
+
+    @GetMapping("/{id}/titulares")
+    public ResponseEntity<List<TitularTarjetaResponse>> obtenerTitularesPorBanco(@PathVariable String id) {
+        List<TitularTarjetaResponse> response = bancoService.obtenerTitularesPorBanco(id).stream()
+                .map(TitularTarjetaMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 }

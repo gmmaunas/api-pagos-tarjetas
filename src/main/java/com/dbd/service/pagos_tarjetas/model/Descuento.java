@@ -38,20 +38,23 @@ public class Descuento extends Promocion {
 
     @Override
     public Double aplicarACuotas(CompraCuotas compra) {
-        // Si el descuento es solo para contado, no aplica a cuotas
+        return calcularDescuentoParaCuotas(compra);
+    }
+
+    @Override
+    public Double calcularInteresParaCuotas(CompraCuotas compra) {
+        return null;
+    }
+
+    @Override
+    public Double calcularDescuentoParaCuotas(CompraCuotas compra) {
         if (soloContado) {
             return 0.0;
         }
-
-        // Calcular el descuento sobre el monto base
-        Double montoBase = compra.getMonto();
-        Double descuentoAplicado = montoBase * (porcentajeDescuento / 100);
-
-        // Aplicar tope si existe
+        Double descuentoAplicado = compra.getMonto() * (porcentajeDescuento / 100);
         if (tope != null && descuentoAplicado > tope) {
             descuentoAplicado = tope;
         }
-
         return descuentoAplicado;
     }
 }

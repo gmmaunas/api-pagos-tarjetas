@@ -83,13 +83,12 @@ public class PromocionServiceImpl implements IPromocionService {
 
     private void desvincularCompras(String promocionId) {
         List<Compra> comprasConPromocion = compraRepository.findAll().stream()
-                .filter(c -> c.getPromocionesAplicadas() != null &&
-                        c.getPromocionesAplicadas().stream()
-                                .anyMatch(p -> p.getId().equals(promocionId)))
+                .filter(c -> c.getPromocionAplicada() != null &&
+                        c.getPromocionAplicada().getId().equals(promocionId))
                 .toList();
 
         for (Compra compra : comprasConPromocion) {
-            compra.getPromocionesAplicadas().removeIf(p -> p.getId().equals(promocionId));
+            compra.setPromocionAplicada(null);
             compraRepository.save(compra);
         }
     }

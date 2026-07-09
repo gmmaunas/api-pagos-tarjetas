@@ -11,9 +11,9 @@ import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
@@ -31,32 +31,25 @@ public class CompraServiceImpl implements ICompraService {
     // Crear compra en un solo pago
     @Override
     public CompraPagoUnico crearCompraPagoUnico(CompraPagoUnico compra) {
-        // Aplicar promociones válidas
-        aplicarPromocionesACompra(compra);
-
-        // Calcular monto final
+        seleccionarPromocionParaCompra(compra);
         compra.calcularMontoFinal();
-
         return compraPagoUnicoRepository.save(compra);
     }
 
     // Crear compra en cuotas
     @Override
     public CompraCuotas crearCompraCuotas(CompraCuotas compra) {
-        // Aplicar promociones válidas
-        aplicarPromocionesACompra(compra);
-
-        // Calcular monto final
+        seleccionarPromocionParaCompra(compra);
         compra.calcularMontoFinal();
-
-        // Generar cuotas
         compra.generarCuotas();
-
         return compraCuotasRepository.save(compra);
     }
 
-    // Aplicar promociones válidas a una compra
-    private void aplicarPromocionesACompra(Compra compra) {
+    // Seleccionar la primera promoción válida del banco para la tienda y fecha (0..1)
+    private void seleccionarPromocionParaCompra(Compra compra) {
+        if (compra.getPromocionAplicada() != null) {
+            return;
+        }
         Tarjeta tarjeta = tarjetaRepository.findById(compra.getTarjeta().getId())
                 .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada"));
 
@@ -64,25 +57,13 @@ public class CompraServiceImpl implements ICompraService {
         String cuitTienda = compra.getCuitTienda();
         LocalDate fechaCompra = compra.getFechaHora().toLocalDate();
 
-        // Obtener promociones válidas del banco para la tienda y fecha
-        List<Promocion> promocionesValidas = promocionRepository.findAll()
-                .stream()
-                .filter(p -> p.getBanco().getId().equals(bancoId))
+        Optional<Promocion> promo = promocionRepository.findAll().stream()
+                .filter(p -> p.getBanco() != null && p.getBanco().getId().equals(bancoId))
                 .filter(p -> p.getCuitTienda().equals(cuitTienda))
                 .filter(p -> p.esValida(fechaCompra))
-                .toList();
+                .findFirst();
 
-        // Obtener IDs de promociones ya aplicadas
-        List<String> promocionesYaAplicadas = compra.getPromocionesAplicadas().stream()
-                .map(Promocion::getId)
-                .toList();
-
-        // Agregar solo las promociones que no están ya aplicadas
-        List<Promocion> promocionesNuevas = promocionesValidas.stream()
-                .filter(p -> !promocionesYaAplicadas.contains(p.getId()))
-                .toList();
-
-        compra.getPromocionesAplicadas().addAll(promocionesNuevas);
+        promo.ifPresent(compra::setPromocionAplicada);
     }
 
     // Obtener información de una compra con sus detalles
@@ -135,9 +116,9 @@ public class CompraServiceImpl implements ICompraService {
     @Override
     public List<Promocion> obtenerPromocionesPorCompra(String compraId) {
         Compra compra = obtenerCompraPorId(compraId);
-        return compra.getPromocionesAplicadas() != null
-                ? compra.getPromocionesAplicadas()
-                : new ArrayList<>();
+        return compra.getPromocionAplicada() != null
+                ? List.of(compra.getPromocionAplicada())
+                : List.of();
     }
 
     public void eliminarCompra(String id) {

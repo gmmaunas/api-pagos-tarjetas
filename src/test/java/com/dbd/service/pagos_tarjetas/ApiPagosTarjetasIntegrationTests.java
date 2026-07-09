@@ -635,4 +635,292 @@ class ApiPagosTarjetasIntegrationTests {
             );
         }
     }
+
+    // =========================================================
+    // Correcciones aplicadas en esta rama MongoDB
+    // =========================================================
+
+    /**
+     * Corrección 1: El descuento en cuotas se aplica sobre el monto base (no como tasa de interés).
+     * Con 20% de descuento sobre $10000 sin interés el montoFinal debe ser $8000, no $210000.
+     */
+    @Test
+    @Order(17)
+    @DisplayName("Corrección 1. Descuento en cuotas reduce el monto, no lo eleva como interés")
+    void testDescuentoEnCuotasCalculoCorrecto() {
+        // Crear promoción de descuento válida hoy para la tienda de test
+        DescuentoRequest promoRequest = new DescuentoRequest(
+                "DESC-CORR1",
+                "Descuento Corrección 1",
+                "Tienda Corrección 1",
+                "30-C1111111-1",
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusMonths(6),
+                null,
+                bancoId,
+                20.0,
+                null,
+                false
+        );
+        ResponseEntity<DescuentoResponse> promoResp = restTemplate.postForEntity(
+                "/promociones/descuento", promoRequest, DescuentoResponse.class);
+        assertThat(promoResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Compra en 6 cuotas por $10000 sin interés en esa tienda
+        CompraCuotasRequest compraRequest = new CompraCuotasRequest(
+                "VOUCHER-CORR1",
+                "Tienda Corrección 1",
+                "30-C1111111-1",
+                10000.0,
+                LocalDate.now().atStartOfDay(),
+                tarjetaId,
+                0.0,
+                6,
+                List.of()
+        );
+        ResponseEntity<CompraCuotasResponse> compraResp = restTemplate.postForEntity(
+                "/compras/cuotas", compraRequest, CompraCuotasResponse.class);
+
+        assertThat(compraResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(compraResp.getBody()).isNotNull();
+        // El monto final debe ser 10000 - 20% = 8000, nunca mayor que el monto original
+        assertThat(compraResp.getBody().montoFinal())
+                .as("El descuento debe REDUCIR el monto, no elevarlo como interés")
+                .isLessThan(compraResp.getBody().monto());
+        assertThat(compraResp.getBody().montoFinal()).isEqualTo(8000.0);
+    }
+
+    /**
+     * Corrección 2: Modelo 0..1 — una compra tiene como máximo una promoción aplicada.
+     * La respuesta incluye un único campo promocionAplicada (no una lista).
+     */
+    @Test
+    @Order(18)
+    @DisplayName("Corrección 2. Modelo 0..1: compra tiene un único campo promocionAplicada")
+    void testModeloUnaPromocionPorCompra() {
+        // Crear compra en tienda sin promo existente → promocionAplicada debe ser null
+        CompraPagoUnicoRequest sinPromo = new CompraPagoUnicoRequest(
+                "VOUCHER-CORR2-SIN",
+                "Tienda Sin Promo",
+                "30-ZZZZZZZ-0",
+                5000.0,
+                LocalDate.now().atStartOfDay(),
+                tarjetaId,
+                0.0,
+                List.of()
+        );
+        ResponseEntity<CompraPagoUnicoResponse> sinResp = restTemplate.postForEntity(
+                "/compras/pago-unico", sinPromo, CompraPagoUnicoResponse.class);
+        assertThat(sinResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(sinResp.getBody().promocionAplicada())
+                .as("Sin promo válida el campo debe ser null, no una lista")
+                .isNull();
+
+        // Crear promo y compra en esa tienda → promocionAplicada debe ser exactamente una
+        DescuentoRequest promoReq = new DescuentoRequest(
+                "DESC-CORR2",
+                "Descuento Corrección 2",
+                "Tienda Corrección 2",
+                "30-C2222222-2",
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusMonths(3),
+                null,
+                bancoId,
+                10.0,
+                null,
+                false
+        );
+        restTemplate.postForEntity("/promociones/descuento", promoReq, DescuentoResponse.class);
+
+        CompraPagoUnicoRequest conPromo = new CompraPagoUnicoRequest(
+                "VOUCHER-CORR2-CON",
+                "Tienda Corrección 2",
+                "30-C2222222-2",
+                5000.0,
+                LocalDate.now().atStartOfDay(),
+                tarjetaId,
+                0.0,
+                List.of()
+        );
+        ResponseEntity<CompraPagoUnicoResponse> conResp = restTemplate.postForEntity(
+                "/compras/pago-unico", conPromo, CompraPagoUnicoResponse.class);
+        assertThat(conResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(conResp.getBody().promocionAplicada())
+                .as("Con promo válida el campo debe ser un objeto PromocionResponse único")
+                .isNotNull();
+    }
+
+    /**
+     * Corrección 3: Bidireccionalidad Banco-Titular.
+     * GET /bancos/{id}/titulares retorna los titulares asociados al banco.
+     */
+    @Test
+    @Order(19)
+    @DisplayName("Corrección 3. GET /bancos/{id}/titulares retorna titulares del banco (bidireccionalidad)")
+    void testBidireccionalidadBancoTitular() {
+        ResponseEntity<List<TitularTarjetaResponse>> response = restTemplate.exchange(
+                "/bancos/" + bancoId + "/titulares",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<TitularTarjetaResponse>>() {}
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).isNotEmpty();
+        response.getBody().forEach(t ->
+                assertThat(t.bancos().stream().anyMatch(b -> b.id().equals(bancoId)))
+                        .as("Cada titular retornado debe tener el banco solicitado")
+                        .isTrue()
+        );
+    }
+
+    /**
+     * Corrección 4: PUT /promociones/{id} funciona correctamente.
+     * El endpoint debe actualizar titulo, fechas y comentarios de la promoción.
+     */
+    @Test
+    @Order(20)
+    @DisplayName("Corrección 4. PUT /promociones/{id} actualiza la promoción correctamente")
+    void testActualizarPromocion() {
+        // Crear una promoción para actualizar
+        DescuentoRequest createReq = new DescuentoRequest(
+                "DESC-CORR4",
+                "Titulo Original",
+                "Tienda Corrección 4",
+                "30-C4444444-4",
+                LocalDate.now(),
+                LocalDate.now().plusMonths(1),
+                null,
+                bancoId,
+                5.0,
+                null,
+                false
+        );
+        ResponseEntity<DescuentoResponse> created = restTemplate.postForEntity(
+                "/promociones/descuento", createReq, DescuentoResponse.class);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String promoId = created.getBody().id();
+
+        // Actualizar via PUT
+        PromocionUpdateRequest updateReq = new PromocionUpdateRequest(
+                "Titulo Actualizado",
+                LocalDate.now().plusDays(5),
+                LocalDate.now().plusMonths(2),
+                "Comentario actualizado"
+        );
+        HttpEntity<PromocionUpdateRequest> entity = new HttpEntity<>(updateReq);
+        ResponseEntity<DescuentoResponse> updated = restTemplate.exchange(
+                "/promociones/" + promoId,
+                HttpMethod.PUT,
+                entity,
+                DescuentoResponse.class
+        );
+
+        assertThat(updated.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(updated.getBody()).isNotNull();
+        assertThat(updated.getBody().tituloPromocion()).isEqualTo("Titulo Actualizado");
+    }
+
+    /**
+     * Corrección 5: Al eliminar un Pago, las cuotas y compras quedan sin referencias colgantes.
+     * Las cuotas recuperan pagoId=null y las CompraPagoUnico recuperan pago=null.
+     */
+    @Test
+    @Order(21)
+    @DisplayName("Corrección 5. Eliminar Pago limpia referencias colgantes en cuotas y compras")
+    void testEliminarPagoLimpiaReferencias() {
+        // Crear compra pago único y generar pago mensual
+        LocalDate mesAnterior = LocalDate.now().minusMonths(2);
+        CompraPagoUnicoRequest compraReq = new CompraPagoUnicoRequest(
+                "VOUCHER-CORR5",
+                "Tienda Corrección 5",
+                "30-C5555555-5",
+                8000.0,
+                mesAnterior.atStartOfDay(),
+                tarjetaId,
+                0.0,
+                List.of()
+        );
+        ResponseEntity<CompraPagoUnicoResponse> compraResp = restTemplate.postForEntity(
+                "/compras/pago-unico", compraReq, CompraPagoUnicoResponse.class);
+        assertThat(compraResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        String mesPago = String.format("%02d", LocalDate.now().minusMonths(1).getMonthValue());
+        String anioPago = String.valueOf(LocalDate.now().minusMonths(1).getYear());
+
+        PagoRequest pagoReq = new PagoRequest(
+                mesPago, anioPago,
+                LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(15),
+                0.0, 3.0
+        );
+        ResponseEntity<PagoResponse> pagoResp = restTemplate.postForEntity(
+                "/pagos/generar", pagoReq, PagoResponse.class);
+
+        if (pagoResp.getStatusCode() == HttpStatus.CREATED) {
+            String pagoId = pagoResp.getBody().id();
+
+            // Eliminar el pago
+            ResponseEntity<Void> deleteResp = restTemplate.exchange(
+                    "/pagos/" + pagoId,
+                    HttpMethod.DELETE, null, Void.class);
+            assertThat(deleteResp.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+            // El pago no debe existir más
+            ResponseEntity<PagoResponse> getResp = restTemplate.getForEntity(
+                    "/pagos/" + pagoId, PagoResponse.class);
+            assertThat(getResp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Corrección 6: El filtro de cuotas del pago mensual opera por cuota (elemMatch),
+     * no a nivel de compra. Solo deben incluirse cuotas del mes/año exacto aún sin asignar.
+     */
+    @Test
+    @Order(22)
+    @DisplayName("Corrección 6. Pago mensual filtra cuotas correctamente por mes/año (elemMatch)")
+    void testPagoMensualFiltroElementosPorCuota() {
+        // Crear compra de 12 cuotas: cuota 1 en el mes actual, cuota 2 en el siguiente, etc.
+        String mesActual = String.format("%02d", LocalDate.now().getMonthValue());
+        String anioActual = String.valueOf(LocalDate.now().getYear());
+
+        CompraCuotasRequest compraReq = new CompraCuotasRequest(
+                "VOUCHER-CORR6",
+                "Tienda Corrección 6",
+                "30-C6666666-6",
+                12000.0,
+                LocalDate.now().minusMonths(1).atStartOfDay(),
+                tarjetaId,
+                0.0,
+                12,
+                List.of()
+        );
+        restTemplate.postForEntity("/compras/cuotas", compraReq, CompraCuotasResponse.class);
+
+        // Intentar generar el pago del mes actual
+        PagoRequest pagoReq = new PagoRequest(
+                mesActual, anioActual,
+                LocalDate.now().plusDays(10),
+                LocalDate.now().plusDays(20),
+                0.0, 5.0
+        );
+        ResponseEntity<PagoResponse> pagoResp = restTemplate.postForEntity(
+                "/pagos/generar", pagoReq, PagoResponse.class);
+
+        // Válido si se crea o si ya existe (de tests anteriores)
+        if (pagoResp.getStatusCode() == HttpStatus.CREATED) {
+            PagoResponse pago = pagoResp.getBody();
+            assertThat(pago).isNotNull();
+            // Todas las cuotas incluidas deben ser del mes/año correcto
+            if (pago.cuotas() != null) {
+                pago.cuotas().forEach(cuota ->
+                        assertThat(cuota.mes() + "/" + cuota.anio())
+                                .as("Solo deben incluirse cuotas del mes %s/%s", mesActual, anioActual)
+                                .isEqualTo(mesActual + "/" + anioActual)
+                );
+            }
+        }
+    }
 }

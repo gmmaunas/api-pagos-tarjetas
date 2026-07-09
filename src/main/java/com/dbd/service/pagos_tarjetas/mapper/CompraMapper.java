@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 public class CompraMapper {
 
     private CompraMapper() {
@@ -21,7 +22,9 @@ public class CompraMapper {
             return null;
         }
 
-        CompraPagoUnico compra = CompraPagoUnico.builder()
+        Promocion promo = (promociones != null && !promociones.isEmpty()) ? promociones.get(0) : null;
+
+        return CompraPagoUnico.builder()
                 .comprobanteVoucher(request.comprobanteVoucher())
                 .tienda(request.tienda())
                 .cuitTienda(request.cuitTienda())
@@ -29,11 +32,8 @@ public class CompraMapper {
                 .fechaHora(request.fechaHora())
                 .tarjeta(tarjeta)
                 .descuentoTienda(request.descuentoTienda() != null ? request.descuentoTienda() : 0.0)
-                .promocionesAplicadas(promociones != null ? promociones : new ArrayList<>())
+                .promocionAplicada(promo)
                 .build();
-
-        compra.calcularMontoFinal();
-        return compra;
     }
 
     public static CompraPagoUnicoResponse toPagoUnicoResponse(CompraPagoUnico compra) {
@@ -53,11 +53,7 @@ public class CompraMapper {
                 compra.getTarjeta() != null ? compra.getTarjeta().getNumero() : null,
                 compra.getDescuentoTienda(),
                 compra.getPago() != null ? compra.getPago().getId() : null,
-                compra.getPromocionesAplicadas() != null
-                        ? compra.getPromocionesAplicadas().stream()
-                        .map(PromocionMapper::toResponse)
-                        .collect(Collectors.toList())
-                        : new ArrayList<>()
+                compra.getPromocionAplicada() != null ? PromocionMapper.toResponse(compra.getPromocionAplicada()) : null
         );
     }
 
@@ -67,7 +63,9 @@ public class CompraMapper {
             return null;
         }
 
-        CompraCuotas compra = CompraCuotas.builder()
+        Promocion promo = (promociones != null && !promociones.isEmpty()) ? promociones.get(0) : null;
+
+        return CompraCuotas.builder()
                 .comprobanteVoucher(request.comprobanteVoucher())
                 .tienda(request.tienda())
                 .cuitTienda(request.cuitTienda())
@@ -76,12 +74,8 @@ public class CompraMapper {
                 .tarjeta(tarjeta)
                 .interes(request.interes() != null ? request.interes() : 0.0)
                 .numeroCuotas(request.numeroCuotas())
-                .promocionesAplicadas(promociones != null ? promociones : new ArrayList<>())
+                .promocionAplicada(promo)
                 .build();
-
-        compra.calcularMontoFinal();
-        compra.generarCuotas();
-        return compra;
     }
 
     public static CompraCuotasResponse toCuotasResponse(CompraCuotas compra) {
@@ -106,11 +100,7 @@ public class CompraMapper {
                         .map(CompraMapper::toCuotaResponse)
                         .collect(Collectors.toList())
                         : new ArrayList<>(),
-                compra.getPromocionesAplicadas() != null
-                        ? compra.getPromocionesAplicadas().stream()
-                        .map(PromocionMapper::toResponse)
-                        .collect(Collectors.toList())
-                        : new ArrayList<>()
+                compra.getPromocionAplicada() != null ? PromocionMapper.toResponse(compra.getPromocionAplicada()) : null
         );
     }
 
@@ -131,11 +121,7 @@ public class CompraMapper {
                 compra.getFechaHora(),
                 compra.getTarjeta() != null ? compra.getTarjeta().getId() : null,
                 compra.getTarjeta() != null ? compra.getTarjeta().getNumero() : null,
-                compra.getPromocionesAplicadas() != null
-                        ? compra.getPromocionesAplicadas().stream()
-                        .map(PromocionMapper::toResponse)
-                        .collect(Collectors.toList())
-                        : new ArrayList<>()
+                compra.getPromocionAplicada() != null ? PromocionMapper.toResponse(compra.getPromocionAplicada()) : null
         );
     }
 

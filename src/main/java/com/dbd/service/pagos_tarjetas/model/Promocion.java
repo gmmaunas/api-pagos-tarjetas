@@ -47,4 +47,8 @@ public abstract class Promocion {
     public abstract Double aplicarAPagoUnico(CompraPagoUnico compra, Double montoActual);
 
     public abstract Double aplicarACuotas(CompraCuotas compra);
+
+    public abstract Double calcularInteresParaCuotas(CompraCuotas compra);
+
+    public abstract Double calcularDescuentoParaCuotas(CompraCuotas compra);
 }

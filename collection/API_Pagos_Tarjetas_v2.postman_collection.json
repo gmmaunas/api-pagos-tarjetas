@@ -94,24 +94,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "REQ 10: Banco con Más Compras",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/bancos/mas-compras",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"bancos",
-								"mas-compras"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -408,14 +390,14 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/promociones/codigo/{{codigoPromo}}",
+							"raw": "{{baseUrl}}/promociones/codigo/{{promocionCodigo}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"promociones",
 								"codigo",
-								"{{codigoPromo}}"
+								"{{promocionCodigo}}"
 							]
 						}
 					},
@@ -471,6 +453,22 @@
 				},
 				{
 					"name": "5.2 Crear Compra en Cuotas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"compraCuotasId\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -502,13 +500,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/compras/{{id}}/detalles",
+							"raw": "{{baseUrl}}/compras/{{compraCuotasId}}/detalles",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"compras",
-								"{{id}}",
+								"{{compraCuotasId}}",
 								"detalles"
 							]
 						}
@@ -547,6 +545,24 @@
 							"path": [
 								"compras",
 								"local-mas-compras"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "REQ 10: Banco con Más Compras",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/bancos/mas-compras",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"bancos",
+								"mas-compras"
 							]
 						}
 					},
@@ -683,7 +699,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"codigo\": \"TEST-DESC\",\n    \"tituloPromocion\": \"Test Descuento\",\n    \"nombreTienda\": \"Test Store\",\n    \"cuitTienda\": \"30-11111111-1\",\n    \"fechaInicioValidez\": \"2025-11-01\",\n    \"fechaFinValidez\": \"2025-11-30\",\n    \"bancoId\": \"{{bancoId}}\",\n    \"porcentajeDescuento\": 15.0,\n    \"tope\": 30000.0,\n    \"soloContado\": false\n}"
+							"raw": "{\n    \"codigo\": \"DESC2025-REQ\",\n    \"tituloPromocion\": \"Test Descuento\",\n    \"nombreTienda\": \"Test Store\",\n    \"cuitTienda\": \"30-11111111-1\",\n    \"fechaInicioValidez\": \"2025-11-01\",\n    \"fechaFinValidez\": \"2025-11-30\",\n    \"bancoId\": \"{{bancoId}}\",\n    \"porcentajeDescuento\": 15.0,\n    \"tope\": 30000.0,\n    \"soloContado\": false\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/promociones/descuento",
@@ -784,13 +800,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/compras/{{id}}/detalles",
+							"raw": "{{baseUrl}}/compras/{{compraCuotasId}}/detalles",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"compras",
-								"{{id}}",
+								"{{compraCuotasId}}",
 								"detalles"
 							]
 						}
@@ -803,14 +819,14 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/promociones/codigo/{{codigoPromo}}",
+							"raw": "{{baseUrl}}/promociones/codigo/DESC2025-REQ",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"promociones",
 								"codigo",
-								"{{codigoPromo}}"
+								"DESC2025-REQ"
 							]
 						}
 					},

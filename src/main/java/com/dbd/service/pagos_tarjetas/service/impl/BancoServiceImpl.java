@@ -1,12 +1,9 @@
 package com.dbd.service.pagos_tarjetas.service.impl;
 
-import com.dbd.service.pagos_tarjetas.model.Banco;
-import com.dbd.service.pagos_tarjetas.repository.BancoRepository;
-import com.dbd.service.pagos_tarjetas.repository.TitularTarjetaRepository;
+import com.dbd.service.pagos_tarjetas.model.*;
+import com.dbd.service.pagos_tarjetas.repository.*;
 import com.dbd.service.pagos_tarjetas.service.IBancoService;
 import lombok.RequiredArgsConstructor;
-import com.dbd.service.pagos_tarjetas.model.Compra;
-import com.dbd.service.pagos_tarjetas.model.TitularTarjeta;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
@@ -20,6 +17,8 @@ public class BancoServiceImpl implements IBancoService {
 
     private final BancoRepository bancoRepository;
     private final TitularTarjetaRepository titularTarjetaRepository;
+    private final TarjetaRepository tarjetaRepository;
+    private final PromocionRepository promocionRepository;
     private final MongoTemplate mongoTemplate;
 
     public Banco crearBanco(Banco banco) {
@@ -58,7 +57,35 @@ public class BancoServiceImpl implements IBancoService {
 
     @Override
     public void eliminarBanco(String id) {
+        // Limpiar banco embebido en Tarjetas
+        tarjetaRepository.findByBancoId(id).forEach(tarjeta -> {
+            tarjeta.setBanco(null);
+            tarjetaRepository.save(tarjeta);
+        });
+
+        // Limpiar banco embebido en Promociones
+        promocionRepository.findByBancoId(id).forEach(promo -> {
+            promo.setBanco(null);
+            promocionRepository.save(promo);
+        });
+
+        // Quitar banco de la lista en TitularTarjeta
+        titularTarjetaRepository.findAll().forEach(titular -> {
+            boolean cambio = titular.getBancos().removeIf(b -> id.equals(b.getId()));
+            if (cambio) {
+                titularTarjetaRepository.save(titular);
+            }
+        });
+
         bancoRepository.deleteById(id);
+    }
+
+    @Override
+    public List<TitularTarjeta> obtenerTitularesPorBanco(String bancoId) {
+        return titularTarjetaRepository.findAll().stream()
+                .filter(t -> t.getBancos() != null && t.getBancos().stream()
+                        .anyMatch(b -> b.getId().equals(bancoId)))
+                .toList();
     }
 
     // Obtener el banco con mayor cantidad de compras realizadas con sus tarjetas

@@ -16,5 +16,5 @@ public record CompraCuotasResponse(
         Double interes,
         Integer numeroCuotas,
         List<CuotaResponse> cuotas,
-        List<PromocionResponse> promocionesAplicadas
+        PromocionResponse promocionAplicada
 ) {}

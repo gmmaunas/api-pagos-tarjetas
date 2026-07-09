@@ -11,10 +11,10 @@
 ### 1.1 Relaciones: Referencias vs Embebido
 
 **Referencias (@DBRef):**
-- **Banco ↔ TitularTarjeta:** Referencia bidireccional ManyToMany (`TitularTarjeta` almacena `List<Banco>`)
+- **Banco ↔ TitularTarjeta:** Relación ManyToMany embebida (`TitularTarjeta` almacena `List<Banco>` embebido, navegación inversa vía servicio)
 - **Tarjeta → TitularTarjeta, Banco:** Referencias
-- **Compra → Tarjeta, Promociones:** Referencias
-- **Promocion → Banco:** Referencia
+- **Compra → Tarjeta, Promocion:** `@DBRef` a una única `promocionAplicada` (0..1, nunca una lista)
+- **Promocion → Banco:** Embebido
 
 **Embebido:**
 - **CompraCuotas → Cuotas:** Embebido (las cuotas no existen sin compra)
@@ -91,7 +91,7 @@ MongoDB NO soporta cascadas automáticas como JPA.
 ### 1.7 Índices
 
 **Índices únicos implementados:**
-- `Banco.cuit` - Garantiza unicidad de CUIT por banco
+- `Banco.cuit` - Validación programática en servicio (el `@Indexed(unique=true)` fue eliminado para evitar `DuplicateKeyException` en documentos embebidos)
 - `TitularTarjeta.cuit` - Garantiza unicidad de CUIT por titular
 - `Tarjeta.numero` - Garantiza unicidad de número de tarjeta
 - `Promocion.codigo` - Garantiza unicidad de código de promoción
@@ -125,15 +125,53 @@ mvn test
 
 **Detalles completos:** Ver `README.md`
 
-## 3. Tests
+## 3. Correcciones Aplicadas
 
-14 tests de integración implementados validando todas las funcionalidades requeridas.
+### Corrección 1 — Cálculo de descuento en cuotas
+
+`CompraCuotas.calcularMontoFinal()` usaba `aplicarACuotas()` de forma ambigua: el valor devuelto por `Descuento` (importe a descontar) era tratado como tasa de interés, elevando el monto en lugar de reducirlo.
+
+**Fix:** Se agregaron métodos polimórficos `calcularInteresParaCuotas()` y `calcularDescuentoParaCuotas()` en la clase abstracta `Promocion`. `Financiacion` implementa el primero y `Descuento` el segundo. `calcularMontoFinal()` invoca ambos sin instanceof, manteniendo el diseño OOP.
+
+### Corrección 2 — Acumulación de promociones (modelo 0..1)
+
+`Compra` tenía `List<Promocion> promocionesAplicadas`, permitiendo asociar múltiples promociones a una sola compra, violando la cardinalidad 0..1 requerida.
+
+**Fix:** Se reemplazó la lista por un campo único `Promocion promocionAplicada` (`@DBRef`). `CompraServiceImpl.seleccionarPromocionParaCompra()` elige la **primera** promoción válida por banco/tienda/fecha. Los responses (`CompraResponse`, etc.) exponen `promocionAplicada` como objeto único (no lista).
+
+### Corrección 3 — Bidireccionalidad Banco-Titular
+
+La relación Banco↔TitularTarjeta era unidireccional (solo TitularTarjeta conoce sus bancos). No existía forma de obtener los titulares de un banco.
+
+**Fix:** Se implementó `GET /bancos/{id}/titulares` con lógica Java en `BancoServiceImpl.obtenerTitularesPorBanco()`, filtrando titulares cuya lista `bancos` contenga el banco buscado.
+
+### Corrección 4 — PUT /promociones/{id} devolvía 400
+
+El endpoint `PUT /promociones/{id}` retornaba hardcodeado un `400 Bad Request`.
+
+**Fix:** Se creó `PromocionUpdateRequest` (tituloPromocion, fechas, comentarios) y el controlador ahora delega a `PromocionServiceImpl.actualizarPromocion()`, retornando el response polimórfico correcto.
+
+### Corrección 5 — Datos colgantes al eliminar Pago o Banco
+
+Eliminar un `Pago` dejaba `pagoId` en cuotas y `pago` en `CompraPagoUnico` apuntando a un documento inexistente. Eliminar un `Banco` dejaba referencias embebidas huérfanas en `Tarjeta`, `Promocion` y `TitularTarjeta`.
+
+**Fix:** `PagoServiceImpl.eliminarPago()` limpia `pagoId` en cuotas y `pago` en compras antes de borrar. `BancoServiceImpl.eliminarBanco()` limpia el banco embebido en Tarjeta/Promocion y lo quita de las listas en TitularTarjeta.
+
+### Corrección 6 — Filtro mensual de cuotas con $elemMatch
+
+La query de `PagoServiceImpl.generarPagoMensual()` filtraba con condiciones separadas sobre el array `cuotas`, lo que permitía que diferentes cuotas satisfagan cada condición (cross-element matching de MongoDB).
+
+**Fix:** Se reemplazó por `Criteria.where("cuotas").elemMatch(...)`, garantizando que **las tres condiciones** (mes, año, pagoId==null) se evalúen sobre la **misma cuota**.
+
+## 4. Tests
+
+22 tests de integración implementados (16 originales + 6 correcciones + 1 application context).
 
 **Tecnología de testing:** MongoDB embebido (Flapdoodle) para independencia del entorno.
 
 **Archivo:** `ApiPagosTarjetasIntegrationTests.java`
 
-## 4. Conclusión
+## 5. Conclusión
 
 Implementación completa con:
 
@@ -141,7 +179,11 @@ Implementación completa con:
 - ✅ Cascadas manuales según lógica de negocio
 - ✅ Operaciones atómicas a nivel documento
 - ✅ Herencia con discriminador de tipo
-- ✅ Índices únicos para integridad de datos
+- ✅ Validación programática de unicidad de CUIT de banco
 - ✅ Embebido vs Referencias según patrón de acceso
+- ✅ Modelo 0..1 para `promocionAplicada` en `Compra`
+- ✅ Cálculo polimórfico sin instanceof para descuento/financiación en cuotas
+- ✅ Eliminación segura de entidades sin referencias colgantes
+- ✅ Bidireccionalidad Banco↔TitularTarjeta navegable via API
 
 **Repositorio:** https://github.com/gmmaunas/api-pagos-tarjetas

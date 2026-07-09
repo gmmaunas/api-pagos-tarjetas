@@ -7,6 +7,7 @@ import com.dbd.service.pagos_tarjetas.model.Financiacion;
 import com.dbd.service.pagos_tarjetas.model.Promocion;
 import com.dbd.service.pagos_tarjetas.rest.request.DescuentoRequest;
 import com.dbd.service.pagos_tarjetas.rest.request.FinanciacionRequest;
+import com.dbd.service.pagos_tarjetas.rest.request.PromocionUpdateRequest;
 import com.dbd.service.pagos_tarjetas.rest.response.DescuentoResponse;
 import com.dbd.service.pagos_tarjetas.rest.response.FinanciacionResponse;
 import com.dbd.service.pagos_tarjetas.rest.response.PromocionResponse;
@@ -104,10 +105,18 @@ public class PromocionController {
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarPromocion(
             @PathVariable String id,
-            @Valid @RequestBody Object request) {
-        // Por ahora retornamos un error indicando que se debe usar endpoints específicos
-        return ResponseEntity.badRequest()
-                .body("Use /api/promociones/descuento/{id} o /api/promociones/financiacion/{id}");
+            @Valid @RequestBody PromocionUpdateRequest request) {
+        Promocion actual = promocionService.obtenerPromocionPorId(id);
+        actual.setTituloPromocion(request.tituloPromocion());
+        actual.setFechaInicioValidez(request.fechaInicioValidez());
+        actual.setFechaFinValidez(request.fechaFinValidez());
+        actual.setComentarios(request.comentarios());
+        Promocion actualizada = promocionService.actualizarPromocion(id, actual);
+        return ResponseEntity.ok(switch (actualizada) {
+            case Descuento d -> PromocionMapper.toDescuentoResponse(d);
+            case Financiacion f -> PromocionMapper.toFinanciacionResponse(f);
+            default -> PromocionMapper.toResponse(actualizada);
+        });
     }
 
     @DeleteMapping("/codigo/{codigo}")
